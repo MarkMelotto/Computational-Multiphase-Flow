@@ -21,6 +21,9 @@ https://www.tandfonline.com/doi/full/10.1080/1064119X.2022.2059421
 Two phase modeling of sediment plume:
 https://link.springer.com/chapter/10.1007/978-981-15-2081-5_24
 
+PDE's in python:
+https://fenicsproject.org/pub/tutorial/html/._ftut1009.html
+
 
 # Project 1
 *Steady fully-developed single-phase channel flow (same for all groups)*
