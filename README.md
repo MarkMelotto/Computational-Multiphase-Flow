@@ -8,7 +8,7 @@ Ideas for final project:
 * ![image](https://user-images.githubusercontent.com/70904313/220875658-73720f7c-849f-4146-a726-9e739928c15c.png)
 ---
 
-*Articles*
+# Articles
 Sediment:
 https://drive.google.com/drive/folders/1duQF-7w8QmqLvBh9Hq5cknwRfabj9qSa
 
