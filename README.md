@@ -24,6 +24,9 @@ https://link.springer.com/chapter/10.1007/978-981-15-2081-5_24
 PDE's in python:
 https://fenicsproject.org/pub/tutorial/html/._ftut1009.html
 
+Traling suction pipe concentration:
+https://iwaponline.com/jh/article/24/4/730/89187/CFD-simulation-and-model-predictive-control-of-the
+
 
 # Project 1
 *Steady fully-developed single-phase channel flow (same for all groups)*
