@@ -15,6 +15,11 @@ https://drive.google.com/drive/folders/1duQF-7w8QmqLvBh9Hq5cknwRfabj9qSa
 Venturi effect:
 https://resources.system-analysis.cadence.com/blog/msa2022-venturi-effect-applications-in-cfd-simulations
 
+Sediment in ship and seabed:
+https://www.tandfonline.com/doi/full/10.1080/1064119X.2022.2059421
+
+Two phase modeling of sediment plume:
+https://link.springer.com/chapter/10.1007/978-981-15-2081-5_24
 
 
 # Project 1
