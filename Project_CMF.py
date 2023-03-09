@@ -6,7 +6,7 @@ if __name__ == "__main__":
 import numpy as np
 import matplotlib.pyplot as plt
 
-ny = 10 #nodes in y
+ny = 25 #nodes in y
 nx = 10 #nodes in x
 #nx= 1
 H = 0.05 #hight in y
