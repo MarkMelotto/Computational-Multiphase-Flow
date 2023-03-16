@@ -22,7 +22,7 @@ dy = H/(ny-1) #Deltay
 
 #Def b in Ax=b, this i a like source term
 b = Delta_P*(dy)**2/(mu)*np.ones(ny)
-#b[0]=0
+b[0] = 0
 #b[-1]=0
 
 # Def matrix to solve, this is the A in Ax=b
@@ -56,12 +56,12 @@ plt.show()
 
 #for fun, plot the velocity profile in x-y direction
 u = U_num*np.ones([nx,ny])
-plt.contourf(u,ny, label='speed of the fluid')
+plt.contourf(u,ny)
 plt.xlabel('channel height')
 plt.ylabel('channel length')
 plt.colorbar()
 plt.show()
 
 #Calc the Reynolds number
-Re = max(U_num*H/mu)
+Re = np.max(U_num*H/mu)
 print('Re=',Re)
