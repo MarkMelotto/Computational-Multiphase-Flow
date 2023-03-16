@@ -20,7 +20,7 @@ def initialize(ny, nx):
     x = np.linspace(0, L, nx)
     mu = 0.00105  # water
     Delta_P = -1  # some drop in presure
-    dy = H / (ny - 1)  # Deltay
+    dy = H / ny  # Deltay
 
     # Def matrix to solve, this is the A in Ax=b
     A = np.zeros([ny, ny])
@@ -37,7 +37,7 @@ def initialize(ny, nx):
 
 def boundary_conditions(b, bc_left=0, bc_right=0):
     b[0] = -bc_left
-    b[-1] = bc_right
+    b[-1] = -bc_right
     return b
 
 def solve(A,b):
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     ny = 25
 
     A, b, x, y = initialize(ny, nx)
-    b = boundary_conditions(b, bc_left=0, bc_right=0)
+    b = boundary_conditions(b, bc_left=3, bc_right=9)
     numerical_solution = solve(A,b)
     plot_flow(y, numerical_solution)
     plot_flow_contour(numerical_solution, nx, ny)
