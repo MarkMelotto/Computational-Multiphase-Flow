@@ -92,6 +92,7 @@ def plot_flow(y, solution):
     plt.plot(y, solution)
     plt.xlabel('channel height')
     plt.ylabel('velocity')
+    plt.title("Velocity field for 1d channel flow")
     plt.grid()
     plt.show()
 
@@ -106,6 +107,7 @@ def plot_flow(y, solution):
 def plot_flow_contour(solution, nx,ny):
     u = solution * np.ones([nx, ny])
     plt.contourf(u, ny)
+    plt.title("Velocity field contour")
     plt.xlabel('channel height')
     plt.ylabel('channel length')
     plt.colorbar()
