@@ -30,7 +30,7 @@ Matrix = np.zeros([ny,ny])
 Matrix[np.arange(ny),np.arange(ny)]=-2
 Matrix[np.arange(ny-1),np.arange(ny-1)+1] = 1
 Matrix[np.arange(ny-1)+1,np.arange(ny-1)] = 1
-Matrix[-1,-1] =-3
+Matrix[-1,-1] = -3
 Matrix[0,0] = -3
 
 #invert matrix
@@ -48,7 +48,7 @@ print('RMS=',RMS)
 
 #plot Num and Ana solutions
 plt.errorbar(y,U_num, Error, fmt ='*', label = 'Numerical Solution')
-plt.plot(y,U_an, label='Analytical Solution')
+plt.plot(y,U_an)
 plt.xlabel('channel height')
 plt.ylabel('velocity')
 plt.legend()
