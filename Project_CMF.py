@@ -33,7 +33,9 @@ def initialize(ny, nx):
     # Def b in Ax=b, this i a like source term
     b = (Delta_P * dy**2 / mu) * np.ones(ny)
 
-    return A, b, x, y
+    U_analytical = -Delta_P /(2*mu) *y*(H-y)
+
+    return A, b, x, y, U_analytical
 
 def boundary_conditions(b, bc_left=0, bc_right=0):
     b[0] = -bc_left
@@ -55,13 +57,14 @@ def error_RMS(numerical_solution, analytical_solution):
     rms = np.sqrt(np.sum(error ** 2) / len(error))
     return rms
 
-#plot Num and Ana solutions
-# plt.errorbar(y,U_num, Error, fmt ='*', label = 'Numerical Solution')
-# plt.plot(y,U_an)
-# plt.xlabel('channel height')
-# plt.ylabel('velocity')
-# plt.legend()
-# plt.show()
+def plot_num_ana_solutions(y, numerical_solution, analytical_solution, error):
+    #plot Num and Ana solutions
+    plt.errorbar(y,numerical_solution, error, fmt ='*', label = 'Numerical Solution')
+    plt.plot(y,analytical_solution)
+    plt.xlabel('channel height')
+    plt.ylabel('velocity')
+    plt.legend()
+    plt.show()
 
 def plot_flow(y, solution):
     plt.plot(y, solution)
@@ -90,8 +93,11 @@ if __name__ == "__main__":
     nx = 10
     ny = 25
 
-    A, b, x, y = initialize(ny, nx)
+    A, b, x, y, U_analytical = initialize(ny, nx)
+
     b = boundary_conditions(b, bc_left=0, bc_right=0)
     numerical_solution = solve(A,b)
-    plot_flow(y, numerical_solution)
+    error = error_RMS(numerical_solution, U_analytical)
+    plot_num_ana_solutions(y, numerical_solution, U_analytical, error)
+    # plot_flow(y, numerical_solution)
     plot_flow_contour(numerical_solution, nx, ny)
