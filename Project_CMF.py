@@ -91,7 +91,7 @@ if __name__ == "__main__":
     ny = 25
 
     A, b, x, y = initialize(ny, nx)
-    b = boundary_conditions(b, bc_left=3, bc_right=9)
+    b = boundary_conditions(b, bc_left=0, bc_right=0)
     numerical_solution = solve(A,b)
     plot_flow(y, numerical_solution)
     plot_flow_contour(numerical_solution, nx, ny)
