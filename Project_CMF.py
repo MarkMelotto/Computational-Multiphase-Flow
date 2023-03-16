@@ -59,7 +59,7 @@ u = U_num*np.ones([nx,ny])
 plt.contourf(u,ny)
 plt.xlabel('channel height')
 plt.ylabel('channel length')
-plt.colorbar('')
+plt.colorbar('speed of the fluid')
 plt.show()
 
 #Calc the Reynolds number
