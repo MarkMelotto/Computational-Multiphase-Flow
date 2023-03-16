@@ -56,10 +56,10 @@ plt.show()
 
 #for fun, plot the velocity profile in x-y direction
 u = U_num*np.ones([nx,ny])
-plt.contourf(u,ny)
+plt.contourf(u,ny, label='speed of the fluid')
 plt.xlabel('channel height')
 plt.ylabel('channel length')
-plt.colorbar('speed of the fluid')
+plt.colorbar()
 plt.show()
 
 #Calc the Reynolds number
