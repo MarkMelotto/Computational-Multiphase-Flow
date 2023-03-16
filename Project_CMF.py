@@ -75,8 +75,8 @@ def solve(A,b):
 
 def error_RMS(numerical_solution, analytical_solution):
     error = (numerical_solution-analytical_solution)
-    RMS = np.sqrt(np.sum(error ** 2) / len(error))
-    return RMS
+    rms = np.sqrt(np.sum(error ** 2) / len(error))
+    return rms
 
 #print('Error=',Error)
 
