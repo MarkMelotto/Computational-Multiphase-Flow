@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 ny = 25 #nodes in y
 nx = 10 #nodes in x
 #nx= 1
-H = 0.05 #hight in y
+H = 0.05 #height in y
 L = 1 #length in x
 y = np.linspace(0,H,ny)
 x = np.linspace(0,L,nx)
@@ -48,8 +48,8 @@ print('RMS=',RMS)
 
 #plot Num and Ana solutions
 plt.errorbar(y,U_num, Error, fmt ='*', label = 'Numerical Solution')
-plt.plot(y,U_an, label ='Analytical Solution')
-plt.xlabel('channel hight')
+plt.plot(y,U_an, label='Analytical Solution')
+plt.xlabel('channel height')
 plt.ylabel('velocity')
 plt.legend()
 plt.show()
@@ -57,9 +57,9 @@ plt.show()
 #for fun, plot the velocity profile in x-y direction
 u = U_num*np.ones([nx,ny])
 plt.contourf(u,ny)
-plt.xlabel('channel hight')
+plt.xlabel('channel height')
 plt.ylabel('channel length')
-plt.colorbar()
+plt.colorbar('')
 plt.show()
 
 #Calc the Reynolds number
