@@ -24,7 +24,7 @@ class NumericalModel():
         self.delta_P = pressure_difference
         self.mu = kinematic_viscosity
 
-        self.matrix, self.body_forces = self.setup_central_difference_matrix()
+        self.matrix, self.body_forces = self.setup_central_difference_matrix_equation()
         self.body_forces = self.boundary_conditions(bc_left, bc_right)
 
     def setup_central_difference_matrix_equation(self):
@@ -42,6 +42,7 @@ class NumericalModel():
     def boundary_conditions(self, bc_left, bc_right):
         self.body_forces[0] = -bc_left
         self.body_forces[-1] = -bc_right
+        return self.body_forces
         
     def calculate_analytical_velocity(self):
         # Def b in Ax=b, this i a like source term
