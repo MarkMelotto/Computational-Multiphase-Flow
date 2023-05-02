@@ -23,7 +23,7 @@ class Grid:
         self.grid = gridpoints
 
     def basic_velocity_CDM(self, bc_left, bc_right):
-        A = np.eye((self.number_of_nodes,self.number_of_nodes))\
+        A = -2*np.eye((self.number_of_nodes,self.number_of_nodes))\
             + np.eye((self.number_of_nodes,self.number_of_nodes), k=1) \
             + np.eye((self.number_of_nodes,self.number_of_nodes), k=-1)
         print(A)
