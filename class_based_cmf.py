@@ -12,7 +12,6 @@ class Grid:
         self.number_of_nodes = nodes
         boundary_node_position = (length/nodes)/2
         position_array = np.linspace(boundary_node_position,length-boundary_node_position, nodes)
-        print(f"lol {position_array}")
         gridpoints = np.zeros((), dtype=[
         ("velocity", float, nodes),
         ("position", float, nodes),
@@ -22,6 +21,15 @@ class Grid:
             gridpoints["position"][i] = position
 
         self.grid = gridpoints
+
+    def basic_velocity_CDM(self, bc_left, bc_right):
+        A = np.eye((self.number_of_nodes,self.number_of_nodes))\
+            + np.eye((self.number_of_nodes,self.number_of_nodes), k=1) \
+            + np.eye((self.number_of_nodes,self.number_of_nodes), k=-1)
+        print(A)
+        A[0,0] = bc_left
+        A[-1,-1] = bc_right
+        print(A)
 
     def get_velocities(self):
         return self.grid["velocity"]
@@ -45,6 +53,9 @@ if __name__ == "__main__":
     # bc_velocity = 0
     grid.make_grid(length, nodes, initial_velocity)
     # |--------do simulations--------|
+    grid.basic_velocity_CDM(-3,-3)
 
+
+    # |--------do plots--------|
     x = grid.get_position()
     velocities = grid.get_velocities()
