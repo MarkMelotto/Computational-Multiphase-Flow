@@ -29,14 +29,16 @@ class Grid:
         A = -2*np.eye(self.number_of_nodes,self.number_of_nodes)\
             + np.eye(self.number_of_nodes,self.number_of_nodes, k=1) \
             + np.eye(self.number_of_nodes,self.number_of_nodes, k=-1)
-
-        A /= length/self.number_of_nodes
+        dx = length/self.number_of_nodes
+        A /= dx
         # A[0,0] = -3
         # A[-1,-1] = -3
 
-        b = 2*np.ones(self.number_of_nodes)*pressure_gradient/(self.dynamic_viscosity * self.rho)
-        b[0] = bc_left
-        b[-1] = bc_right
+        b = np.ones(self.number_of_nodes) * pressure_gradient * dx / self.dynamic_viscosity
+        # print(b)
+        b[0] = -bc_left
+        b[-1] = -bc_right
+        # print(b)
         velocity = np.linalg.solve(A,b)
         self.grid['velocity'] = velocity
 
@@ -73,14 +75,14 @@ class Grid:
 
 if __name__ == "__main__":
     rho = 1000  # water
-    kinematic_viscosity = 0.00105  # water
-    pressure_gradient = -1
+    kinematic_viscosity = 0.00000105  # water
+    pressure_gradient = -1e-2
 
     # Make our initial boy
     grid = Grid(rho, kinematic_viscosity)
 
     length = 1
-    nodes = 500
+    nodes = 100
     initial_velocity = 1
     # bc_velocity = 0
     grid.make_grid(length, nodes, initial_velocity)
