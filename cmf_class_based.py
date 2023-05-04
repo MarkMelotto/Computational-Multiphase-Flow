@@ -31,8 +31,8 @@ class Grid:
             + np.eye(self.number_of_nodes,self.number_of_nodes, k=-1)
 
         A /= length/self.number_of_nodes
-        # A[0,0] = -3
-        # A[-1,-1] = -3
+        A[0,0] = -3
+        A[-1,-1] = -3
 
         b = 2*np.ones(self.number_of_nodes)*pressure_gradient/(self.dynamic_viscosity * self.rho)
         b[0] = bc_left
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     grid = Grid(rho, kinematic_viscosity)
 
     length = 1
-    nodes = 500
+    nodes = 1000
     initial_velocity = 1
     # bc_velocity = 0
     grid.make_grid(length, nodes, initial_velocity)
