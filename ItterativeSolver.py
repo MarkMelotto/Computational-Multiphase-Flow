@@ -10,7 +10,7 @@ ny = 16
 nx = ny * aspect
 mu = 0.01
 dt = 1e-6
-N = 5
+N = 2
 N_p = 10
 H = 1.0
 L = H * aspect
@@ -97,11 +97,11 @@ for iter in tqdm(range(N)):
 
             convection_x = - (ue*ue - uw*uw)/dx - (un*vn - us*vs)/dy
             diffusion_x = mu*( (u_i[j,i+1] - 2.0*u_i[j,i] + u_i[j,i-1])/dx/dx + (u_i[j+1,i] - 2.0*u_i[j,i] + u_i[j-1,i])/dy/dy )
-            #p_x_grad = ((p_i[j,i+1]-p_i[j,i-1]) / (dy))
-            u_t[j,i] = (u_i[j,i] + dt*( diffusion_x - convection_x)) #-p_x_grad +
+            p_x_grad = ((p_i[j,i+1]-p_i[j,i-1]) / (dy))
+            u_t[j,i] = (u_i[j,i] - dt*( -diffusion_x + convection_x +p_x_grad)) #-p_x_grad +
 
     u_t[1:-2, 0] = 1.0  # inflow
-    u_t[1:-2, -1] = u_t[1:-2, -2]  # continuous boundary
+    #u_t[1:-2, -1] = u_t[1:-2, -2]  # continuous boundary
     u_t[0, :] = -u_t[1, :]  # ghost cel
     u_t[-1, :] = -u_t[-2, :]  # ghost cel
 
@@ -120,9 +120,9 @@ for iter in tqdm(range(N)):
 
             diffusion_y = mu*( (v_i[j,i+1] - 2.0*v_i[j,i] + v_i[j,i-1])/dx/dx + (v_i[j+1,i] - 2.0*v_i[j,i] + v_i[j-1,i])/dy/dy )
             convection_y = (ue*ve -uw*vw)/dx -(vn*vn -vs*vs)/dy
-            #p_y_grad = ((p_i[j+1,i] - p_i[j-1,i]) / (dy))
+            p_y_grad = ((p_i[j+1,i] - p_i[j-1,i]) / (dy))
 
-            v_t[j,i] = (v_i[j,i] + dt * ( diffusion_y - convection_y)) #-p_y_grad
+            v_t[j,i] = (v_i[j,i] - dt * (- diffusion_y + convection_y+p_y_grad)) #-p_y_grad
 
     #
     # # # Apply BC
@@ -134,9 +134,9 @@ for iter in tqdm(range(N)):
     # compute pressure right hand side: prhs = 1/dt * div(ut)
     prhs[1:-1, 1:-1] = ((u_t[1:-1, 2:] - u_t[1:-1, 1:-1]) / dx + (v_t[2:, 1:-1] - v_t[1:-1, 1:-1]) / dy)/dt
     pt, info = scipy.sparse.linalg.bicg(A1, prhs[1:-1, 1:-1].ravel(), tol=1e-10)
-    p_t[1:-1, 1:-1] = pt.reshape([ny, nx])
+    p[1:-1, 1:-1] = pt.reshape([ny, nx])
 
-    p = p_i + p_t
+    #p = p_i + p_t
 
     # Correct the velocities to be incompressible
     u[1:-1, 2:-1] = (u_t[1:-1, 2:-1] - dt * ((p[1:-1, 2:-1] - p[1:-1, 1:-2]) / (dx)))
@@ -169,6 +169,6 @@ for iter in tqdm(range(N)):
 plt.quiver(u,v)
 plt.show()
 
-#plt.plot(u[1:-1,6])
-#plt.show()
+plt.plot(u[0:-1,6])
+plt.show()
 
