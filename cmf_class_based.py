@@ -88,11 +88,11 @@ if __name__ == "__main__":
     rho = 1000  # water
     kinematic_viscosity = 0.0000105  # water
     length = 1
-    nodes = 100
+    nodes = 1000
 
     '''weird viscosity'''
     # x = np.linspace(0,length,nodes)
-    # kinematic_viscosity = (1.5 + 1.4*np.sin(x))*1e-5
+    # kinematic_viscosity = (1.5 + 1.4*np.sin(x*4))*1e-5
 
     pressure_gradient = -1e-1
 
