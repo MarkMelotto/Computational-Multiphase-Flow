@@ -18,10 +18,10 @@ class Grid:
         boundary_node_position = (length/nodes)/2
         position_array = np.linspace(boundary_node_position,length-boundary_node_position, nodes)
         gridpoints = np.zeros((), dtype=[
-        ("velocity", float, nodes),
-        ("position", float, nodes),
-        ("analytical_velocity", float, nodes),
-        ])
+                            ("velocity", float, nodes),
+                            ("position", float, nodes),
+                            ("analytical_velocity", float, nodes),
+                            ])
         for i,position in enumerate(position_array):
             gridpoints["velocity"][i] = initial_velocity
             gridpoints["position"][i] = position
@@ -44,6 +44,7 @@ class Grid:
         b = np.ones(self.number_of_nodes) * pressure_gradient * dx**2 / self.dynamic_viscosity
         # print(b)
         b[0] -= 2*bc_left
+        # b[1] -= gradient
         b[-1] -= 2*bc_right
         # print(b)
         velocity = np.linalg.solve(A,b)
@@ -85,18 +86,25 @@ class Grid:
 
 if __name__ == "__main__":
     rho = 1000  # water
-    kinematic_viscosity = 0.00000105  # water
+    kinematic_viscosity = 0.0000105  # water
+    length = 1
+    nodes = 100
+
+    '''weird viscosity'''
+    # x = np.linspace(0,length,nodes)
+    # kinematic_viscosity = (1.5 + 1.4*np.sin(x))*1e-5
+
     pressure_gradient = -1e-1
 
     # Make our initial boy
     grid = Grid(rho, kinematic_viscosity)
 
-    length = 1
-    nodes = 100
+
     initial_velocity = 1
     # bc_velocity = 0
     grid.make_grid(length, nodes, initial_velocity)
     # |--------do simulations--------|
     """ first exercise wall boundary"""
-    grid.basic_velocity_CDM(3,0, pressure_gradient)
+
+    grid.basic_velocity_CDM(bc_left=3,bc_right=2, pressure_gradient=pressure_gradient)
     grid.plot(True)
