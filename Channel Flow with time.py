@@ -65,11 +65,8 @@ for iter in tqdm(range(N)):
     u_star[-1, :] = - u_star[-2, :]
 
     # v velocity
-    diff_v = (mu_mol) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1,
-                                                                                                           1:-1]) / dx ** 2
-    conv_v = (v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (
-                u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (
-                         v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx)
+    diff_v = (mu_mol) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1,1:-1]) / dx ** 2
+    conv_v = (v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx)
     p_grad_v = (P_prev[2:-1, 1:-1] - P_prev[1:-2, 1:-1]) / dx
 
     v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v)
@@ -86,11 +83,7 @@ for iter in tqdm(range(N)):
     P_correction_prev = np.zeros_like(P_prev)
     for _ in range(Npp):
         P_correction_next = np.zeros_like(P_correction_prev)
-        P_correction_next[1:-1, 1:-1] = (P_correction_prev[1:-1, 2:] + P_correction_prev[1:-1, :-2] + P_correction_prev[
-                                                                                                      2:,
-                                                                                                      1:-1] + P_correction_prev[
-                                                                                                              -2,
-                                                                                                              1:-1] - dx ** 2 * Pp_rhs) / 4
+        P_correction_next[1:-1, 1:-1] = (P_correction_prev[1:-1, 2:] + P_correction_prev[1:-1, :-2] + P_correction_prev[2:,1:-1] + P_correction_prev[-2,1:-1] - dx ** 2 * Pp_rhs) / 4
 
         # BC, use Neumann every expect for outlet where we have Dirichlet
         P_correction_next[1:-1, 0] = P_correction_next[1:-1, 1]
