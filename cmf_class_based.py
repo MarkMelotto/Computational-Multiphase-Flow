@@ -92,14 +92,14 @@ class Grid:
         pre_term = (kappa * boundary_layer)**2
         
         # TODO: if statement moet nog worden aangepast met juiste ghost cell check en return (weet niet 100% zeker of dit klopt)
-        if (i >= self.number_of_nodes) or (i <= 1):
+        if (i >= (self.number_of_nodes - 1)) or (i <= 1):
             return 0
         else:
             velocity_difference = np.abs(self.grid["velocity"][i] - self.grid["velocity"][i - 1]) / self.dx
 
             if (i - 1) * self.dx < boundary_layer:
                 return pre_term * ((i - 1) * self.dx)**2 * velocity_difference
-            elif (i - 1) * self.dx > (1 - boundary_layer):
+            elif (i - 1) * self.dx > (self.length - boundary_layer):
                 return pre_term * ((self.number_of_nodes - i + 1) * self.dx)**2 * velocity_difference
             
             return pre_term * velocity_difference * self.dx**2
@@ -117,9 +117,8 @@ class Grid:
         velocity = self.get_velocities()
         position = self.get_position()
         analytical = self.get_analytical_solution()
-
         plt.plot(position, velocity, label="numerical solution")
-
+    
         if analyicalTF:
             plt.plot(position, analytical, label="analytical solution", ls='--')
             plt.title(f"bc_left = {self.boundary_conditions['bc_left']:.1f} m/s, bc_right = {self.boundary_conditions['bc_right']:.1f} m/s")
@@ -153,7 +152,7 @@ if __name__ == "__main__":
     # |--------do simulations--------|
     """ first exercise wall boundary"""
 
-    grid.laminar_velocity(bc_left=3,bc_right=2, pressure_gradient=pressure_gradient)
+    grid.laminar_velocity(bc_left=1,bc_right=0, pressure_gradient=pressure_gradient)
     grid.plot(False)
-    grid.turbulent_velocity(bc_left=3,bc_right=3, pressure_gradient=pressure_gradient)
+    grid.turbulent_velocity(bc_left=1,bc_right=0, pressure_gradient=pressure_gradient)
     grid.plot(False)
