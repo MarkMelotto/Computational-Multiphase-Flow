@@ -3,15 +3,16 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from multiphase_functions import *
 
-Aspect = 10  # Aspect ration between y and x direction
+Aspect = 10  # Aspect ratio between y and x direction
 Ny = 15  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
 nu_mol = 0.01  # kinematic viscosity
 mu_mol = 0.01 / 1e-3
 dt = 1e-4  # time step size
 N = 10000  # number times steps
+start_turb = 8000  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
-Plot_Every = 500
+Plot_Every = 5000
 dx = 1.0 / (Ny - 1)
 H = 1.0  # channel height
 L = H * Aspect  # channel length
@@ -56,13 +57,13 @@ u_next_2 = np.zeros_like(u_prev)
 v_star_2 = np.zeros_like(v_prev)
 v_next_2 = np.zeros_like(v_prev)
 
-y = np.linspace(0, H, Ny - 1)
+y = np.linspace(0, H, Ny - 2)
 f_pos = 0.4 * y
 f_neg = 0.4 * H - 0.4 * y
 f_const = 0.1 * H * np.ones(len(y))
 f_l = (np.minimum(np.minimum(f_pos, f_neg), f_const)) ** 2
-# l = np.zeros((Ny,Nx))
-# l[1:-1,1:-1] = f_l[:, np.newaxis]
+l = np.zeros((Ny,Nx))
+l[1:-1, :] = f_l[:, np.newaxis]
 # l = l**2
 
 
@@ -76,12 +77,15 @@ for iter in tqdm(range(N)):
     p_grad_x = (P_prev[1:-1, 2:-1] - P_prev[1:-1, 1:-2]) / dx
 
     '''multiphase part'''
-    U1mean_x = np.mean(np.mean(u_prev[1:-1, 1:-1], axis=0))
-    U2mean_x = np.mean(np.mean(u_prev_2[1:-1, 1:-1], axis=0))
-    interfacial_stress_x = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_x, U1mean_x)
-    print(f"interfacial stress in x {interfacial_stress_x}")
-
-    u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - interfacial_stress_x)
+    if iter > start_turb:
+        U1mean_x = np.mean(u_prev[1:-1, 1:-1])
+        print(f"mean x = {U1mean_x}")
+        U2mean_x = np.mean(u_prev_2[1:-1, 1:-1])
+        interfacial_stress_x = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_x, U1mean_x)
+        print(f"interfacial stress in x {interfacial_stress_x}")
+        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - interfacial_stress_x)
+    else:
+        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x)
 
 
     # BC
@@ -96,11 +100,16 @@ for iter in tqdm(range(N)):
     p_grad_v = (P_prev[2:-1, 1:-1] - P_prev[1:-2, 1:-1]) / dx
 
     '''multiphase part'''
-    U1mean_y = np.mean(np.mean(u_prev[1:-1, 1:-1], axis=1))
-    U2mean_y = np.mean(np.mean(u_prev_2[1:-1, 1:-1], axis=1))
-    interfacial_stress_y = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_y, U1mean_y)
+    if iter > start_turb:
+        U1mean_y = np.mean(v_prev[1:-1, 1:-1])
+        U2mean_y = np.mean(v_prev_2[1:-1, 1:-1])
+        print(f"mean y = {U1mean_y}")
+        interfacial_stress_y = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_y, U1mean_y)
+        print(f"interfacial stress in y {interfacial_stress_y}")
 
-    v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v - interfacial_stress_y)
+        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v - interfacial_stress_y)
+    else:
+        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v)
 
     # BC
     v_star[1:-1, 0] = - v_star[1:-1, 1]
@@ -109,13 +118,13 @@ for iter in tqdm(range(N)):
     v_star[-1, :] = 0.0
 
     '''multiphase part'''
-    T_t = calc_T_t(u_star, dx)
-    U_1i_U_1j = np.mean(u_star-U1mean_x)*np.mean(v_star-U1mean_y)
-    U_2i_U_2j = calc_U_2i_U_2j(T_t, T_p, U_1i_U_1j)
-    kinetic_stresses = a_2 * rho_p * U_2i_U_2j
-    u_star_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses + interfacial_stress_x)
-    v_star_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses + interfacial_stress_y)
-
+    if iter > start_turb:
+        T_t = calc_T_t(u_star, v_star, l, dx)
+        U_2i_U_2j = calc_U_2i_U_2j(T_t, T_p, u_star, v_star, l, dx)
+        kinetic_stresses = a_2 * rho_p * U_2i_U_2j
+        u_star_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-2] + interfacial_stress_x)
+        v_star_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-2, 1:-1] + interfacial_stress_y)
+        print(f"u_2 velocity mean: {np.mean(u_star_2)}")
     Pp_rhs = (u_star[1:-1, 1:] - u_star[1:-1, :-1] + v_star[1:, 1:-1] - v_star[:-1, 1:-1]) / dx / dt
 
     # Pressure correction
