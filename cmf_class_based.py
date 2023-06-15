@@ -152,7 +152,7 @@ if __name__ == "__main__":
     # |--------do simulations--------|
     """ first exercise wall boundary"""
 
-    grid.laminar_velocity(bc_left=1,bc_right=0, pressure_gradient=pressure_gradient)
+    grid.laminar_velocity(bc_left=0,bc_right=0, pressure_gradient=pressure_gradient)
     grid.plot(False)
-    grid.turbulent_velocity(bc_left=1,bc_right=0, pressure_gradient=pressure_gradient)
+    grid.turbulent_velocity(bc_left=0,bc_right=0, pressure_gradient=pressure_gradient)
     grid.plot(False)
