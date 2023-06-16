@@ -7,10 +7,10 @@ import imageio
 Aspect = 10  # Aspect ratio between y and x direction
 Ny = 15  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
-nu_mol = 1e-6  # kinematic viscosity
+nu_mol = 1e-2  # kinematic viscosity
 mu_mol = nu_mol / 1e-3
-dt = 1e-5  # time step size
-N = 50000  # number times steps
+dt = 1e-6  # time step size
+N = 3e6  # number times steps
 start_turb = int(N*0.7)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
@@ -103,6 +103,13 @@ for iter in tqdm(range(N)):
     u_star[0, :] = - u_star[1, :]
     u_star[-1, :] = - u_star[-2, :]
 
+    '''multiphase part BC'''
+    if iter > start_turb:
+        u_star_2[1:-1, 0] = U_inlet
+        u_star_2[1:-1, -1] = u_star_2[1:-1, -2]
+        u_star_2[0, :] = - u_star_2[1, :]
+        u_star_2[-1, :] = - u_star_2[-2, :]
+
     # v velocity
     diff_v = (nu_mol) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1, 1:-1]) / dx ** 2
     conv_v = (v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx)
@@ -125,6 +132,13 @@ for iter in tqdm(range(N)):
     v_star[1:-1, -1] = v_star[1:-1, -2]
     v_star[0, :] = 0.0
     v_star[-1, :] = 0.0
+
+    '''multiphase part BC'''
+    if iter > start_turb:
+        v_star_2[1:-1, 0] = - v_star_2[1:-1, 1]
+        v_star_2[1:-1, -1] = v_star_2[1:-1, -2]
+        v_star_2[0, :] = 0.0
+        v_star_2[-1, :] = 0.0
 
     '''multiphase part'''
     if iter > start_turb:
@@ -165,6 +179,11 @@ for iter in tqdm(range(N)):
     u_next[1:-1, 1:-1] = u_star[1:-1, 1:-1] - dt * P_correction_grad_x
     v_next[1:-1, 1:-1] = v_star[1:-1, 1:-1] - dt * P_correction_grad_y
 
+    '''multiphase part'''
+    if iter > start_turb:
+        u_next_2[1:-1, 1:-1] = u_star_2[1:-1, 1:-1]
+        v_next_2[1:-1, 1:-1] = v_star_2[1:-1, 1:-1]
+
     # BC again
     u_next[1:-1, 0] = U_inlet
     Inflow_flux = np.sum(u_next[1:-1, 0])
@@ -178,10 +197,29 @@ for iter in tqdm(range(N)):
     v_next[0, :] = 0.0
     v_next[-1, :] = 0.0
 
+    '''multiphase part BC'''
+    if iter > start_turb:
+        u_next_2[1:-1, 0] = U_inlet
+        Inflow_flux = np.sum(u_next_2[1:-1, 0])
+        Outflow_flux = np.sum(u_next_2[1:-1, -2])
+        u_next_2[1:-1, -1] = u_next_2[1:-1, -2] * Inflow_flux / Outflow_flux
+        u_next_2[0, :] = - u_next_2[1, :]
+        u_next_2[-1, :] = - u_next_2[-2, :]
+
+        v_next_2[1:-1, 0] = - v_next_2[1:-1, 1]
+        v_next_2[1:-1, -1] = v_next_2[1:-1, -2]
+        v_next_2[0, :] = 0.0
+        v_next_2[-1, :] = 0.0
+
     # Advance
     u_prev = u_next
     v_prev = v_next
     P_prev = P_next
+
+    '''multiphase part'''
+    if iter > start_turb:
+        u_prev_2 = u_next_2
+        v_prev_2 = v_next_2
 
     # Visualize simulation
     if iter % Plot_Every == 0:
@@ -207,17 +245,51 @@ for iter in tqdm(range(N)):
         # plt.clf()
         plt.close
 
+    if iter > start_turb:
+        if iter % Plot_Every == 0:
+            plt.figure(dpi=50)
+            u_center = (u_next_2[1:, :] + u_next_2[:-1, :]) / 2
+            v_center = (v_next_2[:, 1:] + v_next_2[:, :-1]) / 2
+            plt.contourf(coord_x, coord_y, u_center, levels=10)
+
+            plt.colorbar()
+
+            plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center[:, ::6], v_center[:, ::6], alpha=0.4)
+
+            # plt.plot(5 * dx + u_center[:, 5], coord_y[:, 5], linewidth=3)
+            # plt.plot(20 * dx + u_center[:, 5], coord_y[:, 20], linewidth=3)
+            # plt.plot(80 * dx + u_center[:, 5], coord_y[:, 80], linewidth=3)
+            plt.title(f"time: {iter*dt:.2f} s")
+            # plt.draw()
+            # plt.pause(0.05)
+            plt.savefig(f'save_for_gif/img_mult_{iter}.png',
+                        transparent=False,
+                        facecolor='white'
+                        )
+            # plt.clf()
+            plt.close
+
 print("saving gif")
 frames = []
+frames_2 = []
 for iter in range(N):
 
     if iter % Plot_Every == 0:
         image = imageio.v2.imread(f'save_for_gif/img_{iter}.png')
         frames.append(image)
 
-imageio.mimsave(f'gifs/multiphase.gif',
+        if iter > start_turb:
+            image = imageio.v2.imread(f'save_for_gif/img_mult_{iter}.png')
+            frames_2.append(image)
+
+imageio.mimsave(f'gifs/multiphase_continuous.gif',
                 frames,
                 duration=0.03
                 )
+imageio.mimsave(f'gifs/multiphase_dispersed.gif',
+                frames_2,
+                duration=0.03
+                )
+
 print("gif saved")
 # plt.show()
