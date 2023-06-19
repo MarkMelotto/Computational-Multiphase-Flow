@@ -11,7 +11,7 @@ nu_mol = 1e-2  # kinematic viscosity
 mu_mol = nu_mol / 1e-3
 dt = 1e-4  # time step size
 N = int(8e4)  # number times steps
-start_turb = int(N*0.7)  # start timestep of multiphase part
+start_turb = int(N*0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
 Plot_Every = int(N / totalplots)
@@ -91,7 +91,10 @@ for iter in tqdm(range(N)):
         # print(f"mean x = {U1mean_x}")
         U2mean_x = np.mean(u_prev_2[1:-1, 1:-1])
         # print(f"mean x dispersed = {U2mean_x}")
+        # U2_U1_avg = np.mean(u_prev_2[1:-1, 1:-1] - u_prev[1:-1, 1:-1])
         interfacial_stress_x = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_x, U1mean_x)
+        # interfacial_stress_x = get_F_i_new(nu_mol, D_p, rho_p, a_2, U2_U1_avg)
+
         # print(f"interfacial stress in x {interfacial_stress_x}")
         u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - interfacial_stress_x)
     else:
@@ -105,11 +108,11 @@ for iter in tqdm(range(N)):
     u_star[-1, :] = - u_star[-2, :]
 
     '''multiphase part BC'''
-    if iter > start_turb:
-        u_star_2[1:-1, 0] = U_inlet
-        u_star_2[1:-1, -1] = u_star_2[1:-1, -2]
-        u_star_2[0, :] = - u_star_2[1, :]
-        u_star_2[-1, :] = - u_star_2[-2, :]
+    # if iter > start_turb:
+    #     u_star_2[1:-1, 0] = U_inlet
+    #     u_star_2[1:-1, -1] = u_star_2[1:-1, -2]
+    #     u_star_2[0, :] = - u_star_2[1, :]
+    #     u_star_2[-1, :] = - u_star_2[-2, :]
 
     # v velocity
     diff_v = (nu_mol) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1, 1:-1]) / dx ** 2
@@ -135,11 +138,11 @@ for iter in tqdm(range(N)):
     v_star[-1, :] = 0.0
 
     '''multiphase part BC'''
-    if iter > start_turb:
-        v_star_2[1:-1, 0] = - v_star_2[1:-1, 1]
-        v_star_2[1:-1, -1] = v_star_2[1:-1, -2]
-        v_star_2[0, :] = 0.0
-        v_star_2[-1, :] = 0.0
+    # if iter > start_turb:
+    #     v_star_2[1:-1, 0] = - v_star_2[1:-1, 1]
+    #     v_star_2[1:-1, -1] = v_star_2[1:-1, -2]
+    #     v_star_2[0, :] = 0.0
+    #     v_star_2[-1, :] = 0.0
 
     '''multiphase part'''
     if iter > start_turb:
@@ -203,7 +206,7 @@ for iter in tqdm(range(N)):
     v_next[-1, :] = 0.0
 
     '''multiphase part BC'''
-    if iter > start_turb:
+    # if iter > start_turb:
         # u_next_2[1:-1, 0] = U_inlet
         # Inflow_flux = np.sum(u_next_2[1:-1, 0])
         # Outflow_flux = np.sum(u_next_2[1:-1, -2])
@@ -216,27 +219,27 @@ for iter in tqdm(range(N)):
         # v_next_2[0, :] = 0.0
         # v_next_2[-1, :] = 0.0
 
-        u_prev_2[1:-1, 0] = U_inlet
-        Inflow_flux = np.sum(u_prev_2[1:-1, 0])
-        Outflow_flux = np.sum(u_prev_2[1:-1, -2])
-        u_prev_2[1:-1, -1] = u_prev_2[1:-1, -2] * Inflow_flux / Outflow_flux
-        u_next_2[0, :] = - u_prev_2[1, :]
-        u_prev_2[-1, :] = - u_prev_2[-2, :]
-
-        v_prev_2[1:-1, 0] = - v_prev_2[1:-1, 1]
-        v_prev_2[1:-1, -1] = v_prev_2[1:-1, -2]
-        v_prev_2[0, :] = 0.0
-        v_prev_2[-1, :] = 0.0
+        # u_prev_2[1:-1, 0] = U_inlet
+        # Inflow_flux = np.sum(u_prev_2[1:-1, 0])
+        # Outflow_flux = np.sum(u_prev_2[1:-1, -2])
+        # u_prev_2[1:-1, -1] = u_prev_2[1:-1, -2] * Inflow_flux / Outflow_flux
+        # u_next_2[0, :] = - u_prev_2[1, :]
+        # u_prev_2[-1, :] = - u_prev_2[-2, :]
+        #
+        # v_prev_2[1:-1, 0] = - v_prev_2[1:-1, 1]
+        # v_prev_2[1:-1, -1] = v_prev_2[1:-1, -2]
+        # v_prev_2[0, :] = 0.0
+        # v_prev_2[-1, :] = 0.0
 
     # Advance
     u_prev = u_next
     v_prev = v_next
     P_prev = P_next
 
-    '''multiphase part'''
-    if iter > start_turb:
-        u_prev_2 = u_next_2
-        v_prev_2 = v_next_2
+    # '''multiphase part'''
+    # if iter > start_turb:
+    #     u_prev_2 = u_next_2
+    #     v_prev_2 = v_next_2
 
     # Visualize simulation
     if iter % Plot_Every == 0:
@@ -252,7 +255,10 @@ for iter in tqdm(range(N)):
         # plt.plot(5 * dx + u_center[:, 5], coord_y[:, 5], linewidth=3)
         # plt.plot(20 * dx + u_center[:, 5], coord_y[:, 20], linewidth=3)
         # plt.plot(80 * dx + u_center[:, 5], coord_y[:, 80], linewidth=3)
-        plt.title(f"time: {iter*dt:.2f} s")
+        if iter > start_turb:
+            plt.title(f"time: {iter*dt:.2f} s, Multiphase: on")
+        else:
+            plt.title(f"time: {iter * dt:.2f} s, Multiphase: off")
         # plt.draw()
         # plt.pause(0.05)
         plt.savefig(f'save_for_gif/img_{iter}.png',
@@ -265,8 +271,8 @@ for iter in tqdm(range(N)):
     if iter > start_turb:
         if iter % Plot_Every == 0:
             plt.figure(dpi=50)
-            u_center = (u_next_2[1:, :] + u_next_2[:-1, :]) / 2
-            v_center = (v_next_2[:, 1:] + v_next_2[:, :-1]) / 2
+            u_center = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
+            v_center = (v_prev_2[:, 1:] + v_prev_2[:, :-1]) / 2
             plt.contourf(coord_x, coord_y, u_center, levels=10)
 
             plt.colorbar()

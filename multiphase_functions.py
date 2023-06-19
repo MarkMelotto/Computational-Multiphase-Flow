@@ -76,6 +76,7 @@ def calc_U_2i_U_2j(T_t, T_p, U, V, l, dx):
     return (T_t/(T_p+T_t))*U_1i_U_1j
 
 def calc_U_2i_U_2j_new(T_t, T_p, U, l, dx):
+    # print(f"l is {l}")
     U_1i_U_1j = calc_U_prime_new(U, l, dx)**2
     U_1i_U_1j[np.isnan(U_1i_U_1j)] = 0
     return (T_t/(T_p+T_t))*U_1i_U_1j
@@ -83,7 +84,17 @@ def calc_U_2i_U_2j_new(T_t, T_p, U, l, dx):
 def get_F_i(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
     U_2i_min_U_1i = U2mean - U1mean
     # print(f'U2 min U1 = {U_2i_min_U_1i}')
+    # interfacial_stress = 18*nu_f * rho_2 * a_2 * U_2i_min_U_1i / D_p**2
     interfacial_stress = 18*nu_f * rho_2 * a_2 * U_2i_min_U_1i
+
+    return interfacial_stress
+
+def get_F_i_new(nu_f, D_p, rho_2, a_2, U2_U1):
+    # U_2i_min_U_1i = U2mean - U1mean
+    # print(f'U2 min U1 = {U_2i_min_U_1i}')
+    interfacial_stress = 18*nu_f * rho_2 * a_2 * U2_U1 / D_p**2
+    # interfacial_stress = 18*nu_f * rho_2 * a_2 * U2_U1
+
     return interfacial_stress
 
 if __name__ == "__main__":
@@ -134,7 +145,7 @@ if __name__ == "__main__":
     vprime = calc_dU_d_new(v_prev, dx)
     print(vprime)
 
-    # U_prime_x = calc_U_prime(u_prev, v_prev, l_x, dx)
+    # U_prime_x = calc_U_2i_U_2j_new(T_t, T_p, U, l, dx)
     # print(U_prime_x.shape)
     #
     # U_prime_y = calc_U_prime(u_prev, v_prev, l_y, dx)
