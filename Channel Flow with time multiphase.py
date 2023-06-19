@@ -7,14 +7,14 @@ import imageio
 Aspect = 10  # Aspect ratio between y and x direction
 Ny = 15  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
-nu_mol = 1e-2  # kinematic viscosity
+nu_mol = 1e-6  # kinematic viscosity
 mu_mol = nu_mol / 1e-3
-dt = 1e-6  # time step size
-N = 3e6  # number times steps
+dt = 1e-4  # time step size
+N = int(3e4)  # number times steps
 start_turb = int(N*0.7)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
-Plot_Every = int(N / 100)
+Plot_Every = int(N / totalplots)
 dx = 1.0 / (Ny - 1)
 H = 1.0  # channel height
 L = H * Aspect  # channel length
@@ -90,6 +90,7 @@ for iter in tqdm(range(N)):
         U1mean_x = np.mean(u_prev[1:-1, 1:-1])
         # print(f"mean x = {U1mean_x}")
         U2mean_x = np.mean(u_prev_2[1:-1, 1:-1])
+        # print(f"mean x dispersed = {U2mean_x}")
         interfacial_stress_x = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_x, U1mean_x)
         # print(f"interfacial stress in x {interfacial_stress_x}")
         u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - interfacial_stress_x)
@@ -142,15 +143,19 @@ for iter in tqdm(range(N)):
 
     '''multiphase part'''
     if iter > start_turb:
-        T_t = calc_T_t(u_star, v_star, l_x, dx)
-        U_2i_U_2j = calc_U_2i_U_2j(T_t, T_p, u_star, v_star, l_x, dx)
+        T_t = calc_T_t_new(u_star, l_x, dx)
+        U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, u_star, l_x, dx)
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
-        u_star_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] + interfacial_stress_x)
+        kinetic_stresses[np.isnan(kinetic_stresses)] = 0
+        # print(f"kinetic stress x: {kinetic_stresses}")
+        u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] + interfacial_stress_x)
 
-        T_t = calc_T_t(u_star, v_star, l_y, dx)
-        U_2i_U_2j = calc_U_2i_U_2j(T_t, T_p, u_star, v_star, l_y, dx)
+        T_t = calc_T_t_new(v_star, l_y, dx)
+        U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, v_star, l_y, dx)
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
-        v_star_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] + interfacial_stress_y)
+        # print(f"kinetic stress y: {kinetic_stresses}")
+        kinetic_stresses[np.isnan(kinetic_stresses)] = 0
+        v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] + interfacial_stress_y)
         # print(f"u_2 velocity mean: {np.mean(u_star_2[1:-1, 1:-1] )}")
     Pp_rhs = (u_star[1:-1, 1:] - u_star[1:-1, :-1] + v_star[1:, 1:-1] - v_star[:-1, 1:-1]) / dx / dt
 
@@ -180,9 +185,9 @@ for iter in tqdm(range(N)):
     v_next[1:-1, 1:-1] = v_star[1:-1, 1:-1] - dt * P_correction_grad_y
 
     '''multiphase part'''
-    if iter > start_turb:
-        u_next_2[1:-1, 1:-1] = u_star_2[1:-1, 1:-1]
-        v_next_2[1:-1, 1:-1] = v_star_2[1:-1, 1:-1]
+    # if iter > start_turb:
+    #     u_next_2[1:-1, 1:-1] = u_star_2[1:-1, 1:-1]
+    #     v_next_2[1:-1, 1:-1] = v_star_2[1:-1, 1:-1]
 
     # BC again
     u_next[1:-1, 0] = U_inlet
@@ -199,17 +204,29 @@ for iter in tqdm(range(N)):
 
     '''multiphase part BC'''
     if iter > start_turb:
-        u_next_2[1:-1, 0] = U_inlet
-        Inflow_flux = np.sum(u_next_2[1:-1, 0])
-        Outflow_flux = np.sum(u_next_2[1:-1, -2])
-        u_next_2[1:-1, -1] = u_next_2[1:-1, -2] * Inflow_flux / Outflow_flux
-        u_next_2[0, :] = - u_next_2[1, :]
-        u_next_2[-1, :] = - u_next_2[-2, :]
+        # u_next_2[1:-1, 0] = U_inlet
+        # Inflow_flux = np.sum(u_next_2[1:-1, 0])
+        # Outflow_flux = np.sum(u_next_2[1:-1, -2])
+        # u_next_2[1:-1, -1] = u_next_2[1:-1, -2] * Inflow_flux / Outflow_flux
+        # u_next_2[0, :] = - u_next_2[1, :]
+        # u_next_2[-1, :] = - u_next_2[-2, :]
+        #
+        # v_next_2[1:-1, 0] = - v_next_2[1:-1, 1]
+        # v_next_2[1:-1, -1] = v_next_2[1:-1, -2]
+        # v_next_2[0, :] = 0.0
+        # v_next_2[-1, :] = 0.0
 
-        v_next_2[1:-1, 0] = - v_next_2[1:-1, 1]
-        v_next_2[1:-1, -1] = v_next_2[1:-1, -2]
-        v_next_2[0, :] = 0.0
-        v_next_2[-1, :] = 0.0
+        u_prev_2[1:-1, 0] = U_inlet
+        Inflow_flux = np.sum(u_prev_2[1:-1, 0])
+        Outflow_flux = np.sum(u_prev_2[1:-1, -2])
+        u_prev_2[1:-1, -1] = u_prev_2[1:-1, -2] * Inflow_flux / Outflow_flux
+        u_next_2[0, :] = - u_prev_2[1, :]
+        u_prev_2[-1, :] = - u_prev_2[-2, :]
+
+        v_prev_2[1:-1, 0] = - v_prev_2[1:-1, 1]
+        v_prev_2[1:-1, -1] = v_prev_2[1:-1, -2]
+        v_prev_2[0, :] = 0.0
+        v_prev_2[-1, :] = 0.0
 
     # Advance
     u_prev = u_next
