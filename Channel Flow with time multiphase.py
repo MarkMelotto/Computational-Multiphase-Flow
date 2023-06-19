@@ -7,10 +7,10 @@ import imageio
 Aspect = 10  # Aspect ratio between y and x direction
 Ny = 15  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
-nu_mol = 1e-6  # kinematic viscosity
+nu_mol = 1e-2  # kinematic viscosity
 mu_mol = nu_mol / 1e-3
 dt = 1e-4  # time step size
-N = int(3e4)  # number times steps
+N = int(8e4)  # number times steps
 start_turb = int(N*0.7)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
