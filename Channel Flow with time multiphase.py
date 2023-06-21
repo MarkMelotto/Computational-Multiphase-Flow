@@ -7,10 +7,10 @@ import imageio
 Aspect = 10  # Aspect ratio between y and x direction
 Ny = 15  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
-nu_mol = 1e-2  # kinematic viscosity
+nu_mol = 1e-3  # kinematic viscosity
 mu_mol = nu_mol / 1e-3
-dt = 1e-4  # time step size
-N = int(8e4)  # number times steps
+dt = 1e-5  # time step size
+N = int(8e5)  # number times steps
 start_turb = int(N*0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
@@ -54,10 +54,10 @@ u_next = np.zeros_like(u_prev)
 v_star = np.zeros_like(v_prev)
 v_next = np.zeros_like(v_prev)
 '''multiphase part'''
-u_star_2 = np.zeros_like(u_prev)
-u_next_2 = np.zeros_like(u_prev)
-v_star_2 = np.zeros_like(v_prev)
-v_next_2 = np.zeros_like(v_prev)
+# u_star_2 = np.zeros_like(u_prev)
+# u_next_2 = np.zeros_like(u_prev)
+# v_star_2 = np.zeros_like(v_prev)
+# v_next_2 = np.zeros_like(v_prev)
 
 y = np.linspace(0, H, Ny)
 f_pos = 0.4 * y
@@ -87,9 +87,12 @@ for iter in tqdm(range(N)):
 
     '''multiphase part'''
     if iter > start_turb:
-        U1mean_x = np.mean(u_prev[1:-1, 1:-1])
+        # U1mean_x = np.mean(u_prev[1:-1, 1:-1])
+        U1mean_x = u_prev[1:-1, 1:-1]
+
         # print(f"mean x = {U1mean_x}")
-        U2mean_x = np.mean(u_prev_2[1:-1, 1:-1])
+        # U2mean_x = np.mean(u_prev_2[1:-1, 1:-1])
+        U2mean_x = u_prev_2[1:-1, 1:-1]
         # print(f"mean x dispersed = {U2mean_x}")
         # U2_U1_avg = np.mean(u_prev_2[1:-1, 1:-1] - u_prev[1:-1, 1:-1])
         interfacial_stress_x = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_x, U1mean_x)
@@ -121,8 +124,11 @@ for iter in tqdm(range(N)):
 
     '''multiphase part'''
     if iter > start_turb:
-        U1mean_y = np.mean(v_prev[1:-1, 1:-1])
-        U2mean_y = np.mean(v_prev_2[1:-1, 1:-1])
+        # U1mean_y = np.mean(v_prev[1:-1, 1:-1])
+        # U2mean_y = np.mean(v_prev_2[1:-1, 1:-1])
+
+        U1mean_y = v_prev[1:-1, 1:-1]
+        U2mean_y = v_prev_2[1:-1, 1:-1]
         # print(f"mean y = {U1mean_y}")
         interfacial_stress_y = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_y, U1mean_y)
         # print(f"interfacial stress in y {interfacial_stress_y}")
@@ -152,6 +158,8 @@ for iter in tqdm(range(N)):
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         # print(f"kinetic stress x: {kinetic_stresses}")
         u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] + interfacial_stress_x)
+        # u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (interfacial_stress_x)
+
 
         T_t = calc_T_t_new(v_star, l_y, dx)
         U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, v_star, l_y, dx)

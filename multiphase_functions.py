@@ -44,13 +44,16 @@ def calc_dU_d_new(U, dx):
     # dv_dx = np.zeros((U.shape[0],V.shape[1]))
     # print(f"u shape = {U.shape}")
     du_dy[2:-1, 1:-1] = (U[2:-1, 1:-1] - U[1:-2, 1:-1]) / dx
+    du_dy[np.isnan(du_dy)] = 0
     # print(f"du_dy shape = {du_dy.shape}")
     du_dx[1:-1, 2:-1] = (U[1:-1, 2:-1] - U[1:-1, 1:-2]) / dx
+    du_dx[np.isnan(du_dx)] = 0
     # print(f"du_dx shape = {du_dx.shape}")
     # dv_dy = (V[2:-1, 1:-1] - V[1:-2, 1:-1]) / dx
     # dv_dx = (V[1:-1, 2:-1] - V[1:-1, 1:-2]) / dx
 
-    u_prime = np.sqrt(du_dx*du_dx + du_dy*du_dy + 2*du_dx*du_dy)/4
+    u_prime = np.sqrt((du_dx*du_dx + du_dy*du_dy + 2*du_dx*du_dy)/4)
+    u_prime[np.isnan(u_prime)] = 0
     # u_prime = np.sqrt(np.mean(du_dx)**2+np.mean(dv_dy)**2)
     return u_prime
 
@@ -89,13 +92,6 @@ def get_F_i(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
 
     return interfacial_stress
 
-def get_F_i_new(nu_f, D_p, rho_2, a_2, U2_U1):
-    # U_2i_min_U_1i = U2mean - U1mean
-    # print(f'U2 min U1 = {U_2i_min_U_1i}')
-    interfacial_stress = 18*nu_f * rho_2 * a_2 * U2_U1 / D_p**2
-    # interfacial_stress = 18*nu_f * rho_2 * a_2 * U2_U1
-
-    return interfacial_stress
 
 if __name__ == "__main__":
     Aspect = 10  # Aspect ratio between y and x direction
