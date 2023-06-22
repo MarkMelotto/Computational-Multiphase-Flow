@@ -8,7 +8,7 @@ Aspect = 10  # Aspect ratio between y and x direction
 Ny = 15  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
 nu_mol = 1e-3  # kinematic viscosity
-mu_mol = nu_mol / 1e-3
+mu_mol = nu_mol * 1e3
 dt = 1e-5  # time step size
 N = int(8e5)  # number times steps
 start_turb = int(N*0.3)  # start timestep of multiphase part
@@ -18,7 +18,7 @@ Plot_Every = int(N / totalplots)
 dx = 1.0 / (Ny - 1)
 H = 1.0  # channel height
 L = H * Aspect  # channel length
-U_inlet = 1.0
+U_inlet = 1
 
 x_range = np.linspace(0.0, L, Nx)
 y_range = np.linspace(0.0, H, Ny)
@@ -317,10 +317,23 @@ imageio.mimsave(f'gifs/multiphase_continuous.gif',
                 frames,
                 duration=0.03
                 )
-imageio.mimsave(f'gifs/multiphase_dispersed.gif',
-                frames_2,
-                duration=0.03
-                )
+
+height = np.linspace(0.0, H, Ny+1)
+plt.close()
+plt.figure()
+plt.plot(height, u_prev[:,-3], label='Continuous phase')
+plt.title("Steamwise Velocity profile at the end")
+if start_turb < N:
+    imageio.mimsave(f'gifs/multiphase_dispersed.gif',
+                    frames_2,
+                    duration=0.03
+                    )
+    plt.plot(height, u_prev_2[:,-3], label='Dispersed phase')
+
+plt.ylabel("Velocity (m/s)")
+plt.xlabel("Height (m)")
+plt.legend()
+plt.savefig(f"plots/velocity.png")
 
 print("gif saved")
 # plt.show()
