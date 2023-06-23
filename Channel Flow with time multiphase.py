@@ -32,6 +32,7 @@ V_p = (D_p/2)**3 * np.pi * 4/3  # volume particle
 M_p = V_p * rho_p  # mass of the particle
 a_2 = 0.01  # alpha 2 is set to be 0.01 for now
 T_p = M_p/(3*np.pi*mu_mol*D_p)
+a_1 = 1 - a_2
 
 # Initial Conditions
 u_prev = np.ones((Ny + 1, Nx)) * U_inlet
@@ -78,12 +79,12 @@ l_x[:, :] = f_l_x[:, np.newaxis]
 
 for iter in tqdm(range(N)):
     # u velocity
-    diff_x = (nu_mol) * (u_prev[1:-1, 2:] + u_prev[1:-1, :-2] + u_prev[2:, 1:-1] + u_prev[:-2, 1:-1] - 4 * u_prev[1:-1,
-                                                                                                           1:-1]) / dx ** 2
-    conv_x = (u_prev[1:-1, 2:] ** 2 - u_prev[1:-1, :-2] ** 2) / (2 * dx) + (
+    diff_x = a_1 * ((nu_mol) * (u_prev[1:-1, 2:] + u_prev[1:-1, :-2] + u_prev[2:, 1:-1] + u_prev[:-2, 1:-1] - 4 * u_prev[1:-1,
+                                                                                                           1:-1]) / dx ** 2)
+    conv_x = a_1 * ((u_prev[1:-1, 2:] ** 2 - u_prev[1:-1, :-2] ** 2) / (2 * dx) + (
                 v_prev[1:, 1:-2] + v_prev[1:, 2:-1] + v_prev[:-1, 1:-2] + v_prev[:-1, 2:-1]) / 4 * (
-                         u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) / (2 * dx)
-    p_grad_x = (P_prev[1:-1, 2:-1] - P_prev[1:-1, 1:-2]) / dx
+                         u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) / (2 * dx))
+    p_grad_x = a_1 * ((P_prev[1:-1, 2:-1] - P_prev[1:-1, 1:-2]) / dx)
 
     '''multiphase part'''
     if iter > start_turb:
@@ -118,9 +119,9 @@ for iter in tqdm(range(N)):
     #     u_star_2[-1, :] = - u_star_2[-2, :]
 
     # v velocity
-    diff_v = (nu_mol) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1, 1:-1]) / dx ** 2
-    conv_v = (v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx)
-    p_grad_v = (P_prev[2:-1, 1:-1] - P_prev[1:-2, 1:-1]) / dx
+    diff_v = a_1 * ((nu_mol) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1, 1:-1]) / dx ** 2)
+    conv_v = a_1 * ((v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx))
+    p_grad_v = a_1 * ((P_prev[2:-1, 1:-1] - P_prev[1:-2, 1:-1]) / dx)
 
     '''multiphase part'''
     if iter > start_turb:
