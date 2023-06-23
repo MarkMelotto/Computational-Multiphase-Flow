@@ -5,7 +5,7 @@ from multiphase_functions import *
 import imageio
 
 Aspect = 10  # Aspect ratio between y and x direction
-Ny = 15  # points in y direction
+Ny = 30  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
 nu_mol = 1e-3  # kinematic viscosity
 mu_mol = nu_mol * 1e3
@@ -99,7 +99,7 @@ for iter in tqdm(range(N)):
         # interfacial_stress_x = get_F_i_new(nu_mol, D_p, rho_p, a_2, U2_U1_avg)
 
         # print(f"interfacial stress in x {interfacial_stress_x}")
-        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - interfacial_stress_x)
+        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x + interfacial_stress_x)
     else:
         u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x)
 
@@ -133,7 +133,7 @@ for iter in tqdm(range(N)):
         interfacial_stress_y = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_y, U1mean_y)
         # print(f"interfacial stress in y {interfacial_stress_y}")
 
-        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v - interfacial_stress_y)
+        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v + interfacial_stress_y)
     else:
         v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v)
 
@@ -157,7 +157,7 @@ for iter in tqdm(range(N)):
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         # print(f"kinetic stress x: {kinetic_stresses}")
-        u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] + interfacial_stress_x)
+        u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_x)
         # u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (interfacial_stress_x)
 
 
@@ -166,7 +166,7 @@ for iter in tqdm(range(N)):
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # print(f"kinetic stress y: {kinetic_stresses}")
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] + interfacial_stress_y)
+        v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_y)
         # print(f"u_2 velocity mean: {np.mean(u_star_2[1:-1, 1:-1] )}")
     Pp_rhs = (u_star[1:-1, 1:] - u_star[1:-1, :-1] + v_star[1:, 1:-1] - v_star[:-1, 1:-1]) / dx / dt
 
@@ -318,21 +318,24 @@ imageio.mimsave(f'gifs/multiphase_continuous.gif',
                 duration=0.03
                 )
 
-height = np.linspace(0.0, H, Ny+1)
+height = np.linspace(0.0, H, Ny)
 plt.close()
 plt.figure()
-plt.plot(height, u_prev[:,-3], label='Continuous phase')
+u_center = (u_next[1:, :] + u_next[:-1, :]) / 2
+plt.plot(height, u_center[:,-3], label='Continuous phase')
 plt.title("Steamwise Velocity profile at the end")
 if start_turb < N:
     imageio.mimsave(f'gifs/multiphase_dispersed.gif',
                     frames_2,
                     duration=0.03
                     )
-    plt.plot(height, u_prev_2[:,-3], label='Dispersed phase')
+    u_center = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
+    plt.plot(height, u_center[:,-3], label='Dispersed phase')
 
 plt.ylabel("Velocity (m/s)")
 plt.xlabel("Height (m)")
 plt.legend()
+plt.grid()
 plt.savefig(f"plots/velocity.png")
 
 print("gif saved")
