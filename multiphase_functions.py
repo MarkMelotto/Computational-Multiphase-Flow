@@ -87,8 +87,8 @@ def calc_U_2i_U_2j_new(T_t, T_p, U, l, dx):
 def get_F_i(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
     U_2i_min_U_1i = U2mean - U1mean
     # print(f'U2 min U1 = {U_2i_min_U_1i}')
-    # interfacial_stress = 18*nu_f * rho_2 * a_2 * U_2i_min_U_1i / D_p**2
-    interfacial_stress = 18*nu_f * rho_2 * a_2 * U_2i_min_U_1i
+    interfacial_stress = 18*nu_f * rho_2 * a_2 * U_2i_min_U_1i / D_p**2
+    # interfacial_stress = 18*nu_f * rho_2 * a_2 * U_2i_min_U_1i
 
     return interfacial_stress
 

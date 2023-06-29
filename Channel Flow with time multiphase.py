@@ -3,14 +3,15 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from multiphase_functions import *
 import imageio
+import os
 
 Aspect = 10  # Aspect ratio between y and x direction
 Ny = 30  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
-nu_mol = 1e-3  # kinematic viscosity
+nu_mol = 1e-6  # kinematic viscosity
 mu_mol = nu_mol * 1e3
-dt = 1e-5  # time step size
-N = int(8e5)  # number times steps
+dt = 1e-4  # time step size
+N = int(9e5)  # number times steps
 start_turb = int(N*0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
@@ -31,8 +32,10 @@ rho_p = 1602  # density sand = 1602 kg/m3
 V_p = (D_p/2)**3 * np.pi * 4/3  # volume particle
 M_p = V_p * rho_p  # mass of the particle
 a_2 = 0.01  # alpha 2 is set to be 0.01 for now
-T_p = M_p/(3*np.pi*mu_mol*D_p)
+T_p = M_p/(3*np.pi*mu_mol*D_p)  # Particle relaxation == 8.9e-5
+T_p *= 100
 a_1 = 1 - a_2
+# print(T_p)
 
 # Initial Conditions
 u_prev = np.ones((Ny + 1, Nx)) * U_inlet
@@ -161,6 +164,14 @@ for iter in tqdm(range(N)):
         u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_x)
         # u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (interfacial_stress_x)
 
+        '''BC'''
+        u_prev_2[1:-1, 0] = U_inlet
+        Inflow_flux = np.sum(u_prev_2[1:-1, 0])
+        Outflow_flux = np.sum(u_prev_2[1:-1, -2])
+        u_prev_2[1:-1, -1] = u_prev_2[1:-1, -2] * Inflow_flux / Outflow_flux
+        u_prev_2[0, :] = - u_prev_2[1, :]
+        u_prev_2[-1, :] = - u_prev_2[-2, :]
+
 
         T_t = calc_T_t_new(v_star, l_y, dx)
         U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, v_star, l_y, dx)
@@ -169,6 +180,13 @@ for iter in tqdm(range(N)):
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_y)
         # print(f"u_2 velocity mean: {np.mean(u_star_2[1:-1, 1:-1] )}")
+
+        '''BC'''
+        v_prev_2[1:-1, 0] = - v_prev_2[1:-1, 1]
+        v_prev_2[1:-1, -1] = v_prev_2[1:-1, -2]
+        v_prev_2[0, :] = 0.0
+        v_prev_2[-1, :] = 0.0
+
     Pp_rhs = (u_star[1:-1, 1:] - u_star[1:-1, :-1] + v_star[1:, 1:-1] - v_star[:-1, 1:-1]) / dx / dt
 
     # Pressure correction
@@ -196,11 +214,6 @@ for iter in tqdm(range(N)):
     u_next[1:-1, 1:-1] = u_star[1:-1, 1:-1] - dt * P_correction_grad_x
     v_next[1:-1, 1:-1] = v_star[1:-1, 1:-1] - dt * P_correction_grad_y
 
-    '''multiphase part'''
-    # if iter > start_turb:
-    #     u_next_2[1:-1, 1:-1] = u_star_2[1:-1, 1:-1]
-    #     v_next_2[1:-1, 1:-1] = v_star_2[1:-1, 1:-1]
-
     # BC again
     u_next[1:-1, 0] = U_inlet
     Inflow_flux = np.sum(u_next[1:-1, 0])
@@ -213,32 +226,6 @@ for iter in tqdm(range(N)):
     v_next[1:-1, -1] = v_next[1:-1, -2]
     v_next[0, :] = 0.0
     v_next[-1, :] = 0.0
-
-    '''multiphase part BC'''
-    # if iter > start_turb:
-        # u_next_2[1:-1, 0] = U_inlet
-        # Inflow_flux = np.sum(u_next_2[1:-1, 0])
-        # Outflow_flux = np.sum(u_next_2[1:-1, -2])
-        # u_next_2[1:-1, -1] = u_next_2[1:-1, -2] * Inflow_flux / Outflow_flux
-        # u_next_2[0, :] = - u_next_2[1, :]
-        # u_next_2[-1, :] = - u_next_2[-2, :]
-        #
-        # v_next_2[1:-1, 0] = - v_next_2[1:-1, 1]
-        # v_next_2[1:-1, -1] = v_next_2[1:-1, -2]
-        # v_next_2[0, :] = 0.0
-        # v_next_2[-1, :] = 0.0
-
-        # u_prev_2[1:-1, 0] = U_inlet
-        # Inflow_flux = np.sum(u_prev_2[1:-1, 0])
-        # Outflow_flux = np.sum(u_prev_2[1:-1, -2])
-        # u_prev_2[1:-1, -1] = u_prev_2[1:-1, -2] * Inflow_flux / Outflow_flux
-        # u_next_2[0, :] = - u_prev_2[1, :]
-        # u_prev_2[-1, :] = - u_prev_2[-2, :]
-        #
-        # v_prev_2[1:-1, 0] = - v_prev_2[1:-1, 1]
-        # v_prev_2[1:-1, -1] = v_prev_2[1:-1, -2]
-        # v_prev_2[0, :] = 0.0
-        # v_prev_2[-1, :] = 0.0
 
     # Advance
     u_prev = u_next
@@ -323,6 +310,9 @@ height = np.linspace(0.0, H, Ny)
 plt.close()
 plt.figure()
 u_center = (u_next[1:, :] + u_next[:-1, :]) / 2
+directory = os.getcwd()
+np.save(directory + "\\data\\u_center.npy", u_center)
+np.save(directory + "\\data\\height.npy", height)
 plt.plot(height, u_center[:,-3], label='Continuous phase')
 plt.title("Steamwise Velocity profile at the end")
 if start_turb < N:
@@ -330,8 +320,9 @@ if start_turb < N:
                     frames_2,
                     duration=0.03
                     )
-    u_center = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
-    plt.plot(height, u_center[:,-3], label='Dispersed phase')
+    u_center_2 = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
+    np.save(directory + "\\data\\u_center_2.npy", u_center_2)
+    plt.plot(height, u_center_2[:,-3], label='Dispersed phase')
 
 plt.ylabel("Velocity (m/s)")
 plt.xlabel("Height (m)")

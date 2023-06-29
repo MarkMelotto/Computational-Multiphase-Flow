@@ -1,0 +1,30 @@
+Aspect = 10  # Aspect ratio between y and x direction
+Ny = 30  # points in y direction
+Nx = (Ny - 1) * Aspect + 1  # points in x direction
+nu_mol = 1e-3  # kinematic viscosity
+mu_mol = nu_mol * 1e3
+dt = 1e-4  # time step size
+N = int(9e5)  # number times steps
+start_turb = int(N*0.3)  # start timestep of multiphase part
+Npp = 10  # Pressure Poisson iterations
+totalplots = 200
+Plot_Every = int(N / totalplots)
+dx = 1.0 / (Ny - 1)
+H = 1.0  # channel height
+L = H * Aspect  # channel length
+U_inlet = 1
+
+x_range = np.linspace(0.0, L, Nx)
+y_range = np.linspace(0.0, H, Ny)
+
+coord_x, coord_y = np.meshgrid(x_range, y_range)
+
+'''multiphase part'''
+D_p = 1e-3  # diameter particles 1mm
+rho_p = 1602  # density sand = 1602 kg/m3
+V_p = (D_p/2)**3 * np.pi * 4/3  # volume particle
+M_p = V_p * rho_p  # mass of the particle
+a_2 = 0.01  # alpha 2 is set to be 0.01 for now
+T_p = M_p/(3*np.pi*mu_mol*D_p)  # Particle relaxation == 8.9e-5
+T_p *= 100
+a_1 = 1 - a_2
