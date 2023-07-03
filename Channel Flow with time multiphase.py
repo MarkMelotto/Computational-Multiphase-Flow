@@ -8,10 +8,10 @@ import os
 Aspect = 10  # Aspect ratio between y and x direction
 Ny = 30  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
-nu_mol = 1e-6  # kinematic viscosity
+nu_mol = 1e-3  # kinematic viscosity
 mu_mol = nu_mol * 1e3
 dt = 1e-4  # time step size
-N = int(9e5)  # number times steps
+N = int(9e4)  # number times steps
 start_turb = int(N*0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
@@ -20,6 +20,8 @@ dx = 1.0 / (Ny - 1)
 H = 1.0  # channel height
 L = H * Aspect  # channel length
 U_inlet = 1
+rho_1 = 1000
+g = 9.81
 
 x_range = np.linspace(0.0, L, Nx)
 y_range = np.linspace(0.0, H, Ny)
@@ -35,6 +37,12 @@ a_2 = 0.01  # alpha 2 is set to be 0.01 for now
 T_p = M_p/(3*np.pi*mu_mol*D_p)  # Particle relaxation == 8.9e-5
 T_p *= 100  # this fix works if nu =<1e-6 and dt =<1e-4
 a_1 = 1 - a_2
+angle = 0  # in streamwise direction
+gravitational_particles_x = gravitational_force_particles(a_2, rho_1, rho_p, angle)
+gravitational_fluid_x = gravitational_force_fluid(a_1, rho_1, angle)
+
+gravitational_particles_y = gravitational_force_particles(a_2, rho_1, rho_p, angle+np.pi/2)
+gravitational_fluid_y = gravitational_force_fluid(a_1, rho_1, angle+np.pi/2)
 # print(T_p)
 
 # Initial Conditions
@@ -103,9 +111,9 @@ for iter in tqdm(range(N)):
         # interfacial_stress_x = get_F_i_new(nu_mol, D_p, rho_p, a_2, U2_U1_avg)
 
         # print(f"interfacial stress in x {interfacial_stress_x}")
-        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x + interfacial_stress_x)
+        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x + interfacial_stress_x - gravitational_fluid_x)
     else:
-        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x)
+        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - gravitational_fluid_x)
 
 
     # BC
@@ -137,9 +145,9 @@ for iter in tqdm(range(N)):
         interfacial_stress_y = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_y, U1mean_y)
         # print(f"interfacial stress in y {interfacial_stress_y}")
 
-        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v + interfacial_stress_y)
+        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v + interfacial_stress_y - gravitational_fluid_y)
     else:
-        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v)
+        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v - gravitational_fluid_y)
 
     # BC
     v_star[1:-1, 0] = - v_star[1:-1, 1]
@@ -161,7 +169,7 @@ for iter in tqdm(range(N)):
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         # print(f"kinetic stress x: {kinetic_stresses}")
-        u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_x)
+        u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_x - gravitational_particles_x)
         # u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (interfacial_stress_x)
 
         '''BC'''
@@ -178,7 +186,7 @@ for iter in tqdm(range(N)):
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # print(f"kinetic stress y: {kinetic_stresses}")
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_y)
+        v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_y - gravitational_particles_y)
         # print(f"u_2 velocity mean: {np.mean(u_star_2[1:-1, 1:-1] )}")
 
         '''BC'''
