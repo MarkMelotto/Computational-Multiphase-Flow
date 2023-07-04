@@ -38,6 +38,8 @@ T_p = M_p/(3*np.pi*mu_mol*D_p)  # Particle relaxation == 8.9e-5
 T_p *= 100  # this fix works if nu =<1e-6 and dt =<1e-4
 a_1 = 1 - a_2
 angle = 0  # in streamwise direction
+
+# Gravity
 gravitational_particles_x = gravitational_force_particles(a_2, rho_1, rho_p, angle)
 gravitational_fluid_x = gravitational_force_fluid(a_1, rho_1, angle)
 
@@ -177,8 +179,8 @@ for iter in tqdm(range(N)):
         Inflow_flux = np.sum(u_prev_2[1:-1, 0])
         Outflow_flux = np.sum(u_prev_2[1:-1, -2])
         u_prev_2[1:-1, -1] = u_prev_2[1:-1, -2] * Inflow_flux / Outflow_flux
-        u_prev_2[0, :] = - u_prev_2[1, :]
-        u_prev_2[-1, :] = - u_prev_2[-2, :]
+        # u_prev_2[0, :] = - u_prev_2[1, :]
+        # u_prev_2[-1, :] = - u_prev_2[-2, :]
 
 
         T_t = calc_T_t_new(v_star, l_y, dx)
@@ -192,8 +194,11 @@ for iter in tqdm(range(N)):
         '''BC'''
         v_prev_2[1:-1, 0] = - v_prev_2[1:-1, 1]
         v_prev_2[1:-1, -1] = v_prev_2[1:-1, -2]
-        v_prev_2[0, :] = 0.0
-        v_prev_2[-1, :] = 0.0
+        v_prev_2[0, :] = - v_prev_2[1, :]
+        v_prev_2[-1, :] = - v_prev_2[-2, :]
+
+        u_prev_2[0, :] =  u_prev_2[1, :]
+        u_prev_2[-1, :] =  u_prev_2[-2, :]
 
     Pp_rhs = (u_star[1:-1, 1:] - u_star[1:-1, :-1] + v_star[1:, 1:-1] - v_star[:-1, 1:-1]) / dx / dt
 
