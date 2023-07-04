@@ -98,7 +98,7 @@ def gravitational_force_particles(a_2, rho_1, rho_2, angle):
 
 def gravitational_force_fluid(a_1, rho_1, angle):
     g = 9.81  # m/s^2
-    return (a_1 / rho_1) * g * np.cos(angle)
+    return a_1 * g * np.cos(angle)
 
 
 if __name__ == "__main__":
