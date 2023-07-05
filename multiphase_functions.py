@@ -92,6 +92,14 @@ def get_F_i(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
 
     return interfacial_stress
 
+def gravitational_force_particles(a_2, rho_1, rho_2, angle):
+    g = 9.81  # m/s^2
+    return a_2*((rho_2 - rho_1)/rho_2) * g * np.cos(angle)
+
+def gravitational_force_fluid(a_1, rho_1, angle):
+    g = 9.81  # m/s^2
+    return a_1 * g * np.cos(angle)
+
 
 if __name__ == "__main__":
     Aspect = 10  # Aspect ratio between y and x direction
