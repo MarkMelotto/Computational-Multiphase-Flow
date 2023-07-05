@@ -40,7 +40,7 @@ v_prev[-1, :] = - v_prev[-2, :]
 
 # Pressure initialization
 pressure_prev = np.zeros((n_y + 1, n_x + 1))
-n_poisson_pressure = 50                         # Pressure Poisson iterations
+n_poisson_pressure = 10                         # Pressure Poisson iterations
 
 # Pre-allocate predictor velocity arrays
 u_star = np.zeros_like(u_prev)
@@ -54,13 +54,12 @@ region_function = np.ones(n_y + 1)
 region_function[:int(.1 * n_y) + 1] = np.array([((n - 1) * height * delta_y)**2 for n in range(1, int(.1 * n_y) + 2)])
 region_function[int(.9 * n_y):] = np.array([((n_y - n) * height * delta_y)**2 for n in range(int(.9 * n_y), int(n_y) + 1)])
 region_function[int(.1 * n_y):int(.9 * n_y) + 1] = (height * 0.1) ** 2
-region_function = region_function[:, np.newaxis]
+region_function = region_function[:, np.newaxis] * VON_KARMAN**2
 
 
 for iter in tqdm(range(n_t)):
     
-    eddy_viscosity = np.abs(u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) / delta_y * \
-                  (VON_KARMAN * region_function[1:-1, :])
+    eddy_viscosity = np.abs(u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) * region_function[1:-1, :] / delta_y
     
     # x velocity (u)
     diffusive_u = (DYN_VISCOSITY_MOL + eddy_viscosity) * \
