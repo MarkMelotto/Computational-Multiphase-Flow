@@ -2,13 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-DYN_VISCOSITY_MOL = 0.01  # Dynamic viscosity
+DYN_VISCOSITY_MOL = 1e-6  # Dynamic viscosity
 RHO = 1000
 VON_KARMAN = 0.41
 
 # Spatial constants and variables
-aspect_ratio = 10                   # Aspect ratio between y and x direction
-n_y = 40                            # Points in y direction
+aspect_ratio = 6                   # Aspect ratio between y and x direction
+n_y = 50                            # Points in y direction
 n_x = (n_y - 1) * aspect_ratio + 1  # Points in x direction
 height = 1.0  
 length = height * aspect_ratio 
@@ -21,12 +21,12 @@ coord_x, coord_y = np.meshgrid(x_range, y_range)
 y = np.linspace(0, height, n_y - 1)
 
 # Temporal constants and variables
-delta_t = 3e-6                      # time step size
-n_t = int(1e4)                      # number times steps
-plot_frequency = 500
+delta_t = 1e-5                  # time step size
+n_t = int(5e5)                   # number times steps
+plot_frequency = 50000
 
 # X velocity
-u_inlet = 100.0
+u_inlet = 1.0
 # Initial Conditions
 u_prev = np.ones((n_y + 1, n_x)) * u_inlet
 u_prev[0, :] = - u_prev[1, :]
@@ -50,20 +50,24 @@ v_next = np.zeros_like(v_prev)
 
 # Define function that check if y is at <10% or >90% of the width of the pipe, 
 # then linear function is used, otherwise a constant value is used.
-region_function = np.ones(n_y - 1) 
-region_function[:int(.1 * n_y)] = np.array([(n - 1) / n_y * delta_y for n in range(1, int(.1 * height * n_y) + 1)])
-region_function[int(.9 * n_y - 1) - 1:] = np.array([(height - n / n_y) * delta_y for n in range(int(.9 * height * n_y), int(height * n_y) + 1)])
-region_function[int(.1 * n_y - 1):int(.9 * n_y)] = height * 0.1
+region_function = np.ones(n_y + 1) 
+region_function[:int(.1 * n_y) + 1] = np.array([((n - 1) * height * delta_y)**2 for n in range(1, int(.1 * n_y) + 2)])
+region_function[int(.9 * n_y):] = np.array([((n_y - n) * height * delta_y)**2 for n in range(int(.9 * n_y), int(n_y) + 1)])
+region_function[int(.1 * n_y):int(.9 * n_y) + 1] = (height * 0.1) ** 2
+region_function = region_function[:, np.newaxis] * VON_KARMAN**2
+
 
 for iter in tqdm(range(n_t)):
+    
+    eddy_viscosity = np.abs(u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) * region_function[1:-1, :] / delta_y
+    
     # x velocity (u)
-    diffusive_u = (DYN_VISCOSITY_MOL +  np.abs(u_prev[1:-1, 2:] - u_prev[1:-1, :-2])/ delta_y * \
-                  (VON_KARMAN * region_function[:, np.newaxis])**2) * \
+    diffusive_u = (DYN_VISCOSITY_MOL + eddy_viscosity) * \
                                       (u_prev[1:-1, 2:] + \
                                        u_prev[1:-1, :-2] + \
                                        u_prev[2:, 1:-1] + \
                                        u_prev[:-2, 1:-1] - \
-                                       4 * u_prev[1:-1, 1:-1]) / delta_x ** 2
+                                       4 * u_prev[1:-1, 1:-1]) / delta_y ** 2
     convective_u = (u_prev[1:-1, 2:]**2 - u_prev[1:-1, :-2]**2) / 2 / delta_x + \
                 (v_prev[1:, 1:-2] + v_prev[1:, 2:-1] + v_prev[:-1, 1:-2] + v_prev[:-1, 2:-1]) / 4 * \
                 (u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) / 2 / delta_x
@@ -82,7 +86,7 @@ for iter in tqdm(range(n_t)):
                                        v_prev[1:-1, :-2] + \
                                        v_prev[2:, 1:-1] + \
                                        v_prev[:-2, 1:-1] - \
-                                       4 * v_prev[1:-1,1:-1]) / delta_x ** 2
+                                       4 * v_prev[1:-1,1:-1]) / delta_y ** 2
     convective_v = (v_prev[2:, 1:-1]**2 - v_prev[:-2, 1:-1]**2) / 2 / delta_x + \
                 (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4  * \
                 (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / 2 / delta_x
@@ -166,4 +170,4 @@ for iter in tqdm(range(n_t)):
 
 plt.show()
 plt.title("U velocity profile at exit of channel.")
-plt.plot(coord_y[:, -1], u_center[:, -1])
+plt.plot(coord_y[:, -3], u_center[:, -3])
