@@ -171,8 +171,6 @@ for iter in tqdm(range(N)):
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, 1:-1]) / dx
-        # print(f"shape x: {u_prev_2[1:-1, 1:-1].shape}")
-        # print(f"kinetic stress x: {kin_stress_x.shape}")
 
         u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (-kin_stress_x - interfacial_stress_x - gravitational_particles_x)
         # u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (interfacial_stress_x)
