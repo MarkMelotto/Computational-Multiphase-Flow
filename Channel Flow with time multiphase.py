@@ -170,8 +170,11 @@ for iter in tqdm(range(N)):
         U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, u_star, l_x, dx)
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        # print(f"kinetic stress x: {kinetic_stresses}")
-        u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_x - gravitational_particles_x)
+        kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, 1:-1]) / dx
+        # print(f"shape x: {u_prev_2[1:-1, 1:-1].shape}")
+        # print(f"kinetic stress x: {kin_stress_x.shape}")
+
+        u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (-kin_stress_x - interfacial_stress_x - gravitational_particles_x)
         # u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (interfacial_stress_x)
 
         '''BC'''
@@ -188,7 +191,9 @@ for iter in tqdm(range(N)):
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # print(f"kinetic stress y: {kinetic_stresses}")
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_y - gravitational_particles_y)
+        kin_stress_y = (kinetic_stresses[2:, 1:-1] - kinetic_stresses[1:-1, 1:-1]) / dx
+
+        v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (-kin_stress_y - interfacial_stress_y - gravitational_particles_y)
         # print(f"u_2 velocity mean: {np.mean(u_star_2[1:-1, 1:-1] )}")
 
         '''BC'''
