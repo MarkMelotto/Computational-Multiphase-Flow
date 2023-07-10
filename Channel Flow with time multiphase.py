@@ -170,8 +170,11 @@ for iter in tqdm(range(N)):
         U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, u_star, l_x, dx)
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        # print(f"kinetic stress x: {kinetic_stresses}")
-        u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_x - gravitational_particles_x)
+        kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, 1:-1]) / dx
+        # print(f"shape x: {u_prev_2[1:-1, 1:-1].shape}")
+        # print(f"kinetic stress x: {kin_stress_x.shape}")
+
+        u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (-kin_stress_x - interfacial_stress_x - gravitational_particles_x)
         # u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (interfacial_stress_x)
 
         '''BC'''
@@ -188,7 +191,9 @@ for iter in tqdm(range(N)):
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # print(f"kinetic stress y: {kinetic_stresses}")
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (kinetic_stresses[1:-1, 1:-1] - interfacial_stress_y - gravitational_particles_y)
+        kin_stress_y = (kinetic_stresses[2:, 1:-1] - kinetic_stresses[1:-1, 1:-1]) / dx
+
+        v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (-kin_stress_y - interfacial_stress_y - gravitational_particles_y)
         # print(f"u_2 velocity mean: {np.mean(u_star_2[1:-1, 1:-1] )}")
 
         '''BC'''
@@ -257,7 +262,7 @@ for iter in tqdm(range(N)):
         v_center = (v_next[:, 1:] + v_next[:, :-1]) / 2
         plt.contourf(coord_x, coord_y, u_center, levels=10)
 
-        plt.colorbar()
+        plt.colorbar(label="Velocity")
 
         plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center[:, ::6], v_center[:, ::6], alpha=0.4)
 
@@ -270,6 +275,8 @@ for iter in tqdm(range(N)):
             plt.title(f"time: {iter * dt:.2f} s, Multiphase: off")
         # plt.draw()
         # plt.pause(0.05)
+        plt.xlabel("y⁺")
+        plt.ylabel("x⁺")
         plt.savefig(f'save_for_gif/img_{iter}.png',
                     transparent=False,
                     facecolor='white'
@@ -292,6 +299,8 @@ for iter in tqdm(range(N)):
             # plt.plot(20 * dx + u_center[:, 5], coord_y[:, 20], linewidth=3)
             # plt.plot(80 * dx + u_center[:, 5], coord_y[:, 80], linewidth=3)
             plt.title(f"time: {iter*dt:.2f} s")
+            plt.xlabel("y⁺")
+            plt.ylabel("x⁺")
             # plt.draw()
             # plt.pause(0.05)
             plt.savefig(f'save_for_gif/img_mult_{iter}.png',
@@ -338,7 +347,7 @@ if start_turb < N:
     plt.plot(height, u_center_2[:,-3], label='Dispersed phase')
 
 plt.ylabel("Velocity (m/s)")
-plt.xlabel("Height (m)")
+plt.xlabel("Width x⁺")
 plt.legend()
 plt.grid()
 plt.savefig(f"plots/velocity.png")
