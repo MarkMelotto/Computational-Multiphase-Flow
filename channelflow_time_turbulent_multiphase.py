@@ -12,6 +12,7 @@ H = 0.1  # channel height
 L = H * Aspect  # channel length
 dx = L / (Nx - 1)
 dy = H / (Ny - 1)
+DPI_for_figures = 50
 
 x_range = np.linspace(0.0, L, Nx)
 y_range = np.linspace(0.0, H, Ny)
@@ -226,7 +227,7 @@ for iter in tqdm(range(N)):
 
     # Visualize simulation
     if iter % Plot_Every == 0:
-        plt.figure(dpi=100)
+        plt.figure(dpi=DPI_for_figures)
         u_center = (u_next[1:, :] + u_next[:-1, :]) / 2
         v_center = (v_next[:, 1:] + v_next[:, :-1]) / 2
         plt.contourf(coord_x, coord_y, u_center, levels=10)
@@ -247,7 +248,7 @@ for iter in tqdm(range(N)):
                     )
         plt.close
 
-        plt.figure(dpi=100)
+        plt.figure(dpi=DPI_for_figures)
         plt.contourf(coord_x, coord_y, v_center, levels=10)
 
         plt.colorbar(label="Velocity")
@@ -268,7 +269,7 @@ for iter in tqdm(range(N)):
 
     if iter > start_multi_phase:
         if iter % Plot_Every == 0:
-            plt.figure(dpi=100)
+            plt.figure(dpi=DPI_for_figures)
             u_center = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
             v_center = (v_prev_2[:, 1:] + v_prev_2[:, :-1]) / 2
             plt.contourf(coord_x, coord_y, u_center, levels=10)
@@ -285,7 +286,7 @@ for iter in tqdm(range(N)):
                         facecolor='white'
                         )
             plt.close
-            plt.figure(dpi=100)
+            plt.figure(dpi=DPI_for_figures)
             plt.contourf(coord_x, coord_y, v_center, levels=10)
 
             plt.colorbar()
