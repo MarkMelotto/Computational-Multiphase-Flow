@@ -8,10 +8,10 @@ import os
 Aspect = 10  # Aspect ratio between y and x direction
 Ny = 30  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
-nu_mol = 1e-3  # kinematic viscosity
+nu_mol = 1e-6  # kinematic viscosity
 mu_mol = nu_mol * 1e3
 dt = 1e-4  # time step size
-N = int(9e4)  # number times steps
+N = int(9e5)  # number times steps
 start_multi_phase = int(N * 0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
@@ -226,8 +226,8 @@ for iter in tqdm(range(N)):
             plt.title(f"Continuous Phase, time: {iter*dt:.2f} s, Multiphase: on")
         else:
             plt.title(f"Continuous Phase, time: {iter * dt:.2f} s, Multiphase: off")
-        plt.xlabel("y⁺")
-        plt.ylabel("x⁺")
+        plt.xlabel("Height (m)")
+        plt.ylabel("Width (m)")
         plt.savefig(f'save_for_gif/img_{iter}.png',
                     transparent=False,
                     facecolor='white'
@@ -245,8 +245,8 @@ for iter in tqdm(range(N)):
 
             plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center_2[:, ::6], v_center_2[:, ::6], alpha=0.4)
             plt.title(f"Dispersed Phase, time: {iter*dt:.2f} s")
-            plt.xlabel("y⁺")
-            plt.ylabel("x⁺")
+            plt.xlabel("Height (m)")
+            plt.ylabel("Width (m)")
             plt.savefig(f'save_for_gif/img_mult_{iter}.png',
                         transparent=False,
                         facecolor='white'
@@ -291,7 +291,7 @@ if start_multi_phase < N:
     plt.plot(height, u_center_2[:,-5], label='Dispersed phase')
 
 plt.ylabel("Velocity (m/s)")
-plt.xlabel("Width x⁺")
+plt.xlabel("Width (m)")
 plt.legend()
 plt.grid()
 plt.savefig(f"plots/velocity.png")
