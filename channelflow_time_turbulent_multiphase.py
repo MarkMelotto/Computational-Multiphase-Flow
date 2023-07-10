@@ -5,10 +5,10 @@ from multiphase_functions import *
 import imageio
 import os
 
-Aspect = 10  # Aspect ratio between y and x direction
+Aspect = 20  # Aspect ratio between y and x direction
 Ny = 30  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
-H = 1  # channel height
+H = 0.1  # channel height
 L = H * Aspect  # channel length
 dx = L / (Nx - 1)
 dy = H / (Ny - 1)
@@ -17,8 +17,8 @@ x_range = np.linspace(0.0, L, Nx)
 y_range = np.linspace(0.0, H, Ny)
 coord_x, coord_y = np.meshgrid(x_range, y_range)
 
-dt = 1e-4  # time step size
-N = int(9e4)  # number times steps
+dt = 1e-5  # time step size
+N = int(9e5)  # number times steps
 start_multi_phase = int(N * 0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 
@@ -226,7 +226,7 @@ for iter in tqdm(range(N)):
 
     # Visualize simulation
     if iter % Plot_Every == 0:
-        plt.figure(dpi=50)
+        plt.figure(dpi=100)
         u_center = (u_next[1:, :] + u_next[:-1, :]) / 2
         v_center = (v_next[:, 1:] + v_next[:, :-1]) / 2
         plt.contourf(coord_x, coord_y, u_center, levels=10)
@@ -241,7 +241,26 @@ for iter in tqdm(range(N)):
             plt.title(f"Continuous Phase, time: {iter * dt:.2f} s, Multiphase: off")
         plt.xlabel("y⁺")
         plt.ylabel("x⁺")
-        plt.savefig(f'save_for_gif/img_{iter}_with_turbulence.png',
+        plt.savefig(f'save_for_gif/u_img_{iter}_with_turbulence.png',
+                    transparent=False,
+                    facecolor='white'
+                    )
+        plt.close
+
+        plt.figure(dpi=100)
+        plt.contourf(coord_x, coord_y, v_center, levels=10)
+
+        plt.colorbar(label="Velocity")
+
+        plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center[:, ::6], v_center[:, ::6], alpha=0.4)
+
+        if iter > start_multi_phase:
+            plt.title(f"Continuous Phase, time: {iter * dt:.2f} s, Multiphase: on")
+        else:
+            plt.title(f"Continuous Phase, time: {iter * dt:.2f} s, Multiphase: off")
+        plt.xlabel("y⁺")
+        plt.ylabel("x⁺")
+        plt.savefig(f'save_for_gif/v_img_{iter}_with_turbulence.png',
                     transparent=False,
                     facecolor='white'
                     )
@@ -249,7 +268,7 @@ for iter in tqdm(range(N)):
 
     if iter > start_multi_phase:
         if iter % Plot_Every == 0:
-            plt.figure(dpi=50)
+            plt.figure(dpi=100)
             u_center = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
             v_center = (v_prev_2[:, 1:] + v_prev_2[:, :-1]) / 2
             plt.contourf(coord_x, coord_y, u_center, levels=10)
@@ -261,27 +280,53 @@ for iter in tqdm(range(N)):
             plt.title(f"Dispersed Phase, time: {iter*dt:.2f} s")
             plt.xlabel("y⁺")
             plt.ylabel("x⁺")
-            plt.savefig(f'save_for_gif/img_mult_{iter}_with_turbulence.png',
+            plt.savefig(f'save_for_gif/u_img_mult_{iter}_with_turbulence.png',
+                        transparent=False,
+                        facecolor='white'
+                        )
+            plt.close
+            plt.figure(dpi=100)
+            plt.contourf(coord_x, coord_y, v_center, levels=10)
+
+            plt.colorbar()
+
+            plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center[:, ::6], v_center[:, ::6], alpha=0.4)
+
+            plt.title(f"Dispersed Phase, time: {iter * dt:.2f} s")
+            plt.xlabel("y⁺")
+            plt.ylabel("x⁺")
+            plt.savefig(f'save_for_gif/v_img_mult_{iter}_with_turbulence.png',
                         transparent=False,
                         facecolor='white'
                         )
             plt.close
 
 print("saving gif")
-frames = []
-frames_2 = []
+u_frames = []
+v_frames = []
+u_frames_2 = []
+v_frames_2 = []
 for iter in range(N):
 
     if iter % Plot_Every == 0:
-        image = imageio.v2.imread(f'save_for_gif/img_{iter}_with_turbulence.png')
-        frames.append(image)
+        image = imageio.v2.imread(f'save_for_gif/u_img_{iter}_with_turbulence.png')
+        u_frames.append(image)
+
+        image = imageio.v2.imread(f'save_for_gif/v_img_{iter}_with_turbulence.png')
+        v_frames.append(image)
 
         if iter > start_multi_phase:
-            image = imageio.v2.imread(f'save_for_gif/img_mult_{iter}_with_turbulence.png')
-            frames_2.append(image)
+            image = imageio.v2.imread(f'save_for_gif/u_img_mult_{iter}_with_turbulence.png')
+            u_frames_2.append(image)
+            image = imageio.v2.imread(f'save_for_gif/v_img_mult_{iter}_with_turbulence.png')
+            v_frames_2.append(image)
 
-imageio.mimsave(f'gifs/multiphase_continuous_with_turbulence.gif',
-                frames,
+imageio.mimsave(f'gifs/u_multiphase_continuous_with_turbulence.gif',
+                u_frames,
+                duration=0.03
+                )
+imageio.mimsave(f'gifs/v_multiphase_continuous_with_turbulence.gif',
+                v_frames,
                 duration=0.03
                 )
 
@@ -295,8 +340,12 @@ np.save(directory + "\\data\\height.npy", height)
 plt.plot(height, u_center[:,-5], label='Continuous phase')
 plt.title("Steamwise Velocity profile at the end")
 if start_multi_phase < N:
-    imageio.mimsave(f'gifs/multiphase_dispersed_with_turbulence.gif',
-                    frames_2,
+    imageio.mimsave(f'gifs/u_multiphase_dispersed_with_turbulence.gif',
+                    u_frames_2,
+                    duration=0.03
+                    )
+    imageio.mimsave(f'gifs/v_multiphase_dispersed_with_turbulence.gif',
+                    v_frames_2,
                     duration=0.03
                     )
     u_center_2 = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
