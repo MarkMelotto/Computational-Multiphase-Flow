@@ -2,18 +2,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-DYN_VISCOSITY_MOL = 1e-6  # Dynamic viscosity
+DYN_VISCOSITY_MOL = 1e-3 # Dynamic viscosity
 RHO = 1000
+KIN_VISCOSITY_MOL = DYN_VISCOSITY_MOL / RHO
 VON_KARMAN = 0.41
 
 # Spatial constants and variables
-aspect_ratio = 6                   # Aspect ratio between y and x direction
-n_y = 50                            # Points in y direction
+aspect_ratio = 25                   # Aspect ratio between y and x direction
+n_y = 30                            # Points in y direction
 n_x = (n_y - 1) * aspect_ratio + 1  # Points in x direction
-height = 1.0  
+height = 1  
 length = height * aspect_ratio 
-delta_x = 1.0 / (n_x - 1)
-delta_y = 1.0 / (n_y - 1)
+delta_x = length / (n_x - 1)
+delta_y = height / (n_y - 1)
 
 x_range = np.linspace(0, length, n_x)
 y_range = np.linspace(0, height, n_y)
@@ -21,15 +22,17 @@ coord_x, coord_y = np.meshgrid(x_range, y_range)
 y = np.linspace(0, height, n_y - 1)
 
 # Temporal constants and variables
-delta_t = 1e-5                  # time step size
-n_t = int(5e5)                   # number times steps
-plot_frequency = 50000
+delta_t = 5e-5                   # time step size
+n_t = int(6e5)                   # number times steps
+plot_frequency = 5000
 
 # X velocity
-u_inlet = 1.0
+u_inlet = 1
 # Initial Conditions
 u_prev = np.ones((n_y + 1, n_x)) * u_inlet
+# u_prev = np.zeros_like(u_prev)
 u_prev[0, :] = - u_prev[1, :]
+u_prev[1:-1, 0] = u_inlet
 u_prev[-1, :] = - u_prev[-2, :]
 
 # Y velocity
@@ -40,7 +43,7 @@ v_prev[-1, :] = - v_prev[-2, :]
 
 # Pressure initialization
 pressure_prev = np.zeros((n_y + 1, n_x + 1))
-n_poisson_pressure = 10                         # Pressure Poisson iterations
+n_poisson_pressure = 20                         # Pressure Poisson iterations
 
 # Pre-allocate predictor velocity arrays
 u_star = np.zeros_like(u_prev)
@@ -56,13 +59,12 @@ region_function[int(.9 * n_y):] = np.array([((n_y - n) * height * delta_y)**2 fo
 region_function[int(.1 * n_y):int(.9 * n_y) + 1] = (height * 0.1) ** 2
 region_function = region_function[:, np.newaxis] * VON_KARMAN**2
 
-
 for iter in tqdm(range(n_t)):
     
     eddy_viscosity = np.abs(u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) * region_function[1:-1, :] / delta_y
     
     # x velocity (u)
-    diffusive_u = (DYN_VISCOSITY_MOL + eddy_viscosity) * \
+    diffusive_u = (KIN_VISCOSITY_MOL + eddy_viscosity) * \
                                       (u_prev[1:-1, 2:] + \
                                        u_prev[1:-1, :-2] + \
                                        u_prev[2:, 1:-1] + \
@@ -82,7 +84,7 @@ for iter in tqdm(range(n_t)):
     u_star[-1, :] = - u_star[-2, :]
 
     # y velocity (v)
-    diffusive_v = DYN_VISCOSITY_MOL * (v_prev[1:-1, 2:] + \
+    diffusive_v = KIN_VISCOSITY_MOL * (v_prev[1:-1, 2:] + \
                                        v_prev[1:-1, :-2] + \
                                        v_prev[2:, 1:-1] + \
                                        v_prev[:-2, 1:-1] - \
@@ -163,7 +165,7 @@ for iter in tqdm(range(n_t)):
 
         # plt.plot(5 * delta_x + u_center[:, 5], coord_y[:, 5], linewidth=3)
         # plt.plot(20 * delta_x + u_center[:, 5], coord_y[:, 20], linewidth=3)
-        # plt.plot(80 * delta_x + u_center[:, 5], coord_y[:, 80], linewidth=3)
+        # plt.plot(u_center[:, int(0.8 * n_x)], coord_y[:, int(0.8 * n_x)], linewidth=3)
         plt.draw()
         plt.pause(0.05)
         plt.clf()
