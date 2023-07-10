@@ -12,7 +12,7 @@ nu_mol = 1e-3  # kinematic viscosity
 mu_mol = nu_mol * 1e3
 dt = 1e-4  # time step size
 N = int(9e4)  # number times steps
-start_turb = int(N*0.3)  # start timestep of multiphase part
+start_multi_phase = int(N * 0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
 Plot_Every = int(N / totalplots)
@@ -45,7 +45,6 @@ gravitational_fluid_x = gravitational_force_fluid(a_1, rho_1, rho_p, angle)
 
 gravitational_particles_y = gravitational_force_particles(a_2, rho_1, rho_p, angle+np.pi/2)
 gravitational_fluid_y = gravitational_force_fluid(a_1, rho_1, rho_p, angle+np.pi/2)
-# print(T_p)
 
 # Initial Conditions
 u_prev = np.ones((Ny + 1, Nx)) * U_inlet
@@ -67,11 +66,6 @@ u_star = np.zeros_like(u_prev)
 u_next = np.zeros_like(u_prev)
 v_star = np.zeros_like(v_prev)
 v_next = np.zeros_like(v_prev)
-'''multiphase part'''
-# u_star_2 = np.zeros_like(u_prev)
-# u_next_2 = np.zeros_like(u_prev)
-# v_star_2 = np.zeros_like(v_prev)
-# v_next_2 = np.zeros_like(v_prev)
 
 y = np.linspace(0, H, Ny)
 f_pos = 0.4 * y
@@ -100,19 +94,11 @@ for iter in tqdm(range(N)):
     p_grad_x = a_1 * ((P_prev[1:-1, 2:-1] - P_prev[1:-1, 1:-2]) / dx)
 
     '''multiphase part'''
-    if iter > start_turb:
-        # U1mean_x = np.mean(u_prev[1:-1, 1:-1])
+    if iter > start_multi_phase:
+
         U1mean_x = u_prev[1:-1, 1:-1]
-
-        # print(f"mean x = {U1mean_x}")
-        # U2mean_x = np.mean(u_prev_2[1:-1, 1:-1])
         U2mean_x = u_prev_2[1:-1, 1:-1]
-        # print(f"mean x dispersed = {U2mean_x}")
-        # U2_U1_avg = np.mean(u_prev_2[1:-1, 1:-1] - u_prev[1:-1, 1:-1])
         interfacial_stress_x = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_x, U1mean_x)
-        # interfacial_stress_x = get_F_i_new(nu_mol, D_p, rho_p, a_2, U2_U1_avg)
-
-        # print(f"interfacial stress in x {interfacial_stress_x}")
         u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x + interfacial_stress_x - gravitational_fluid_x)
     else:
         u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - gravitational_fluid_x)
@@ -124,29 +110,18 @@ for iter in tqdm(range(N)):
     u_star[0, :] = - u_star[1, :]
     u_star[-1, :] = - u_star[-2, :]
 
-    '''multiphase part BC'''
-    # if iter > start_turb:
-    #     u_star_2[1:-1, 0] = U_inlet
-    #     u_star_2[1:-1, -1] = u_star_2[1:-1, -2]
-    #     u_star_2[0, :] = - u_star_2[1, :]
-    #     u_star_2[-1, :] = - u_star_2[-2, :]
-
     # v velocity
     diff_v = a_1 * ((nu_mol) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1, 1:-1]) / dx ** 2)
     conv_v = a_1 * ((v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx))
     p_grad_v = a_1 * ((P_prev[2:-1, 1:-1] - P_prev[1:-2, 1:-1]) / dx)
 
     '''multiphase part'''
-    if iter > start_turb:
-        # U1mean_y = np.mean(v_prev[1:-1, 1:-1])
-        # U2mean_y = np.mean(v_prev_2[1:-1, 1:-1])
+    if iter > start_multi_phase:
+
 
         U1mean_y = v_prev[1:-1, 1:-1]
         U2mean_y = v_prev_2[1:-1, 1:-1]
-        # print(f"mean y = {U1mean_y}")
         interfacial_stress_y = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_y, U1mean_y)
-        # print(f"interfacial stress in y {interfacial_stress_y}")
-
         v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v + interfacial_stress_y - gravitational_fluid_y)
     else:
         v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v - gravitational_fluid_y)
@@ -157,15 +132,8 @@ for iter in tqdm(range(N)):
     v_star[0, :] = 0.0
     v_star[-1, :] = 0.0
 
-    '''multiphase part BC'''
-    # if iter > start_turb:
-    #     v_star_2[1:-1, 0] = - v_star_2[1:-1, 1]
-    #     v_star_2[1:-1, -1] = v_star_2[1:-1, -2]
-    #     v_star_2[0, :] = 0.0
-    #     v_star_2[-1, :] = 0.0
-
     '''multiphase part'''
-    if iter > start_turb:
+    if iter > start_multi_phase:
         T_t = calc_T_t_new(u_star, l_x, dx)
         U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, u_star, l_x, dx)
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
@@ -173,26 +141,20 @@ for iter in tqdm(range(N)):
         kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, 1:-1]) / dx
 
         u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (-kin_stress_x - interfacial_stress_x - gravitational_particles_x)
-        # u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (interfacial_stress_x)
 
         '''BC'''
         u_prev_2[1:-1, 0] = U_inlet
         Inflow_flux = np.sum(u_prev_2[1:-1, 0])
         Outflow_flux = np.sum(u_prev_2[1:-1, -2])
         u_prev_2[1:-1, -1] = u_prev_2[1:-1, -2] * Inflow_flux / Outflow_flux
-        # u_prev_2[0, :] = - u_prev_2[1, :]
-        # u_prev_2[-1, :] = - u_prev_2[-2, :]
-
 
         T_t = calc_T_t_new(v_star, l_y, dx)
         U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, v_star, l_y, dx)
         kinetic_stresses = a_2 * rho_p * U_2i_U_2j
-        # print(f"kinetic stress y: {kinetic_stresses}")
         kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         kin_stress_y = (kinetic_stresses[2:, 1:-1] - kinetic_stresses[1:-1, 1:-1]) / dx
 
         v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (-kin_stress_y - interfacial_stress_y - gravitational_particles_y)
-        # print(f"u_2 velocity mean: {np.mean(u_star_2[1:-1, 1:-1] )}")
 
         '''BC'''
         v_prev_2[1:-1, 0] = - v_prev_2[1:-1, 1]
@@ -200,8 +162,8 @@ for iter in tqdm(range(N)):
         v_prev_2[0, :] = - v_prev_2[1, :]
         v_prev_2[-1, :] = - v_prev_2[-2, :]
 
-        u_prev_2[0, :] =  u_prev_2[1, :]
-        u_prev_2[-1, :] =  u_prev_2[-2, :]
+        u_prev_2[0, :] = u_prev_2[1, :]
+        u_prev_2[-1, :] = u_prev_2[-2, :]
 
     Pp_rhs = (u_star[1:-1, 1:] - u_star[1:-1, :-1] + v_star[1:, 1:-1] - v_star[:-1, 1:-1]) / dx / dt
 
@@ -248,10 +210,6 @@ for iter in tqdm(range(N)):
     v_prev = v_next
     P_prev = P_next
 
-    # '''multiphase part'''
-    # if iter > start_turb:
-    #     u_prev_2 = u_next_2
-    #     v_prev_2 = v_next_2
 
     # Visualize simulation
     if iter % Plot_Every == 0:
@@ -264,43 +222,31 @@ for iter in tqdm(range(N)):
 
         plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center[:, ::6], v_center[:, ::6], alpha=0.4)
 
-        # plt.plot(5 * dx + u_center[:, 5], coord_y[:, 5], linewidth=3)
-        # plt.plot(20 * dx + u_center[:, 5], coord_y[:, 20], linewidth=3)
-        # plt.plot(80 * dx + u_center[:, 5], coord_y[:, 80], linewidth=3)
-        if iter > start_turb:
-            plt.title(f"time: {iter*dt:.2f} s, Multiphase: on")
+        if iter > start_multi_phase:
+            plt.title(f"Continuous Phase, time: {iter*dt:.2f} s, Multiphase: on")
         else:
-            plt.title(f"time: {iter * dt:.2f} s, Multiphase: off")
-        # plt.draw()
-        # plt.pause(0.05)
+            plt.title(f"Continuous Phase, time: {iter * dt:.2f} s, Multiphase: off")
         plt.xlabel("y⁺")
         plt.ylabel("x⁺")
         plt.savefig(f'save_for_gif/img_{iter}.png',
                     transparent=False,
                     facecolor='white'
                     )
-        # plt.clf()
         plt.close
 
-    if iter > start_turb:
+    if iter > start_multi_phase:
         if iter % Plot_Every == 0:
             plt.figure(dpi=50)
-            u_center = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
-            v_center = (v_prev_2[:, 1:] + v_prev_2[:, :-1]) / 2
-            plt.contourf(coord_x, coord_y, u_center, levels=10)
+            u_center_2 = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
+            v_center_2 = (v_prev_2[:, 1:] + v_prev_2[:, :-1]) / 2
+            plt.contourf(coord_x, coord_y, u_center_2, levels=10)
 
             plt.colorbar()
 
-            plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center[:, ::6], v_center[:, ::6], alpha=0.4)
-
-            # plt.plot(5 * dx + u_center[:, 5], coord_y[:, 5], linewidth=3)
-            # plt.plot(20 * dx + u_center[:, 5], coord_y[:, 20], linewidth=3)
-            # plt.plot(80 * dx + u_center[:, 5], coord_y[:, 80], linewidth=3)
-            plt.title(f"time: {iter*dt:.2f} s")
+            plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center_2[:, ::6], v_center_2[:, ::6], alpha=0.4)
+            plt.title(f"Dispersed Phase, time: {iter*dt:.2f} s")
             plt.xlabel("y⁺")
             plt.ylabel("x⁺")
-            # plt.draw()
-            # plt.pause(0.05)
             plt.savefig(f'save_for_gif/img_mult_{iter}.png',
                         transparent=False,
                         facecolor='white'
@@ -317,7 +263,7 @@ for iter in range(N):
         image = imageio.v2.imread(f'save_for_gif/img_{iter}.png')
         frames.append(image)
 
-        if iter > start_turb:
+        if iter > start_multi_phase:
             image = imageio.v2.imread(f'save_for_gif/img_mult_{iter}.png')
             frames_2.append(image)
 
@@ -333,16 +279,16 @@ u_center = (u_next[1:, :] + u_next[:-1, :]) / 2
 directory = os.getcwd()
 np.save(directory + "\\data\\u_center.npy", u_center)
 np.save(directory + "\\data\\height.npy", height)
-plt.plot(height, u_center[:,-3], label='Continuous phase')
+plt.plot(height, u_center[:,-5], label='Continuous phase')
 plt.title("Steamwise Velocity profile at the end")
-if start_turb < N:
+if start_multi_phase < N:
     imageio.mimsave(f'gifs/multiphase_dispersed.gif',
                     frames_2,
                     duration=0.03
                     )
     u_center_2 = (u_prev_2[1:, :] + u_prev_2[:-1, :]) / 2
     np.save(directory + "\\data\\u_center_2.npy", u_center_2)
-    plt.plot(height, u_center_2[:,-3], label='Dispersed phase')
+    plt.plot(height, u_center_2[:,-5], label='Dispersed phase')
 
 plt.ylabel("Velocity (m/s)")
 plt.xlabel("Width x⁺")
@@ -351,4 +297,3 @@ plt.grid()
 plt.savefig(f"plots/velocity.png")
 
 print("gif saved")
-# plt.show()
