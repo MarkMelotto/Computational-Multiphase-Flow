@@ -329,7 +329,7 @@ for iter in range(N):
             image = imageio.v2.imread(f'save_for_gif/img_mult_{iter}.png')
             frames_2.append(image)
 
-imageio.mimsave(f'gifs/multiphase_continuous.gif',
+imageio.mimsave(f'gifs/multiphase_continuous_with_turbulence.gif',
                 frames,
                 duration=0.03
                 )
@@ -344,7 +344,7 @@ np.save(directory + "\\data\\height.npy", height)
 plt.plot(height, u_center[:,-3], label='Continuous phase')
 plt.title("Steamwise Velocity profile at the end")
 if start_multi_phase < N:
-    imageio.mimsave(f'gifs/multiphase_dispersed.gif',
+    imageio.mimsave(f'gifs/multiphase_dispersed_with_turbulence.gif',
                     frames_2,
                     duration=0.03
                     )
