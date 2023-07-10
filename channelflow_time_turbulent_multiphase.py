@@ -239,8 +239,8 @@ for iter in tqdm(range(N)):
             plt.title(f"SW Continuous Phase, time: {iter*dt:.2f} s, Multiphase: on")
         else:
             plt.title(f"SW Continuous Phase, time: {iter * dt:.2f} s, Multiphase: off")
-        plt.xlabel("y⁺")
-        plt.ylabel("x⁺")
+        plt.xlabel("y")
+        plt.ylabel("x")
         plt.savefig(f'save_for_gif/u_img_{iter}_with_turbulence.png',
                     transparent=False,
                     facecolor='white'
@@ -258,8 +258,8 @@ for iter in tqdm(range(N)):
             plt.title(f"NSW Continuous Phase, time: {iter * dt:.2f} s, Multiphase: on")
         else:
             plt.title(f"NSW Continuous Phase, time: {iter * dt:.2f} s, Multiphase: off")
-        plt.xlabel("y⁺")
-        plt.ylabel("x⁺")
+        plt.xlabel("y")
+        plt.ylabel("x")
         plt.savefig(f'save_for_gif/v_img_{iter}_with_turbulence.png',
                     transparent=False,
                     facecolor='white'
@@ -278,8 +278,8 @@ for iter in tqdm(range(N)):
             plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center[:, ::6], v_center[:, ::6], alpha=0.4)
 
             plt.title(f"SW Dispersed Phase, time: {iter*dt:.2f} s")
-            plt.xlabel("y⁺")
-            plt.ylabel("x⁺")
+            plt.xlabel("y")
+            plt.ylabel("x")
             plt.savefig(f'save_for_gif/u_img_mult_{iter}_with_turbulence.png',
                         transparent=False,
                         facecolor='white'
@@ -293,8 +293,8 @@ for iter in tqdm(range(N)):
             plt.quiver(coord_x[:, ::6], coord_y[:, ::6], u_center[:, ::6], v_center[:, ::6], alpha=0.4)
 
             plt.title(f"NSW Dispersed Phase, time: {iter * dt:.2f} s")
-            plt.xlabel("y⁺")
-            plt.ylabel("x⁺")
+            plt.xlabel("y")
+            plt.ylabel("x")
             plt.savefig(f'save_for_gif/v_img_mult_{iter}_with_turbulence.png',
                         transparent=False,
                         facecolor='white'
@@ -353,7 +353,7 @@ if start_multi_phase < N:
     plt.plot(height, u_center_2[:,-5], label='Dispersed phase')
 
 plt.ylabel("Velocity (m/s)")
-plt.xlabel("Width x⁺")
+plt.xlabel("Width x")
 plt.legend()
 plt.grid()
 plt.savefig(f"plots/velocity_with_turbulence.png")
