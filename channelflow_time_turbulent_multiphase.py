@@ -5,7 +5,7 @@ from multiphase_functions import *
 import imageio
 import os
 
-Aspect = 20  # Aspect ratio between y and x direction
+Aspect = 40  # Aspect ratio between y and x direction
 Ny = 30  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
 H = 0.1  # channel height
@@ -19,11 +19,11 @@ y_range = np.linspace(0.0, H, Ny)
 coord_x, coord_y = np.meshgrid(x_range, y_range)
 
 dt = 1e-5  # time step size
-N = int(3e5)  # number times steps
+N = int(9e5)  # number times steps
 start_multi_phase = int(N * 0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 
-totalplots = 200
+totalplots = 150
 Plot_Every = int(N / totalplots)
 
 U_inlet = 1
