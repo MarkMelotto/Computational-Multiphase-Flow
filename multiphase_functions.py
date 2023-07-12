@@ -102,8 +102,8 @@ def gravitational_force_fluid(a_1, rho_1, rho_2, angle):
     return a_1 * g * np.cos(angle)
 
 def make_jet(U, velocity_of_jet):
-    U[5, 3:6] = velocity_of_jet
-    U[5, -6:-3] = velocity_of_jet
+    U[3:9, 150:180] = velocity_of_jet
+    U[-9:-3, 150:180] = velocity_of_jet
 
 
 if __name__ == "__main__":
