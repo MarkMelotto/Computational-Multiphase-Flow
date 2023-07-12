@@ -23,10 +23,12 @@ N = int(9e5)  # number times steps
 start_multi_phase = int(N * 0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 
-totalplots = 150
+totalplots = 100
 Plot_Every = int(N / totalplots)
 
 U_inlet = 1
+jet_velocity = 1.8
+start_jet = int(N * 0.4)
 
 g = 9.81
 rho_1 = 1000
@@ -125,6 +127,9 @@ for iter in tqdm(range(N)):
     u_star[0, :] = - u_star[1, :]
     u_star[-1, :] = - u_star[-2, :]
 
+    if iter > start_jet:
+        make_jet(u_star, jet_velocity)
+
     # v velocity
     diff_v = a_1 * ((nu_mol) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1, 1:-1]) / dx ** 2)
     conv_v = a_1 * ((v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx))
@@ -219,6 +224,10 @@ for iter in tqdm(range(N)):
     v_next[1:-1, -1] = v_next[1:-1, -2]
     v_next[0, :] = 0.0
     v_next[-1, :] = 0.0
+
+    if iter > start_jet:
+        make_jet(u_next, jet_velocity)
+
 
     # Advance
     u_prev = u_next
