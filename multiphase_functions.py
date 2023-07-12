@@ -92,6 +92,16 @@ def get_F_i(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
 
     return interfacial_stress
 
+def get_F_i_fast(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
+    U_2i_min_U_1i = U2mean - U1mean
+    # print(f'U2 min U1 = {U_2i_min_U_1i}')
+    # interfacial_stress = 18*nu_f * rho_2 * a_2 * U_2i_min_U_1i / D_p**2
+    # print(f"a2 {a_2.shape}")
+    # print(f"U2-U1 {U_2i_min_U_1i.shape}")
+    interfacial_stress = 18*nu_f * rho_2 * a_2[1:-1, 1:-1] * U_2i_min_U_1i
+
+    return interfacial_stress
+
 def gravitational_force_particles(a_2, rho_1, rho_2, angle):
     g = 9.81  # m/s^2
     return a_2*((rho_2 - rho_1)/rho_2) * g * np.cos(angle)
@@ -102,8 +112,16 @@ def gravitational_force_fluid(a_1, rho_1, rho_2, angle):
     return a_1 * g * np.cos(angle)
 
 def make_jet(U, velocity_of_jet):
-    U[3:9, 150:180] = velocity_of_jet
-    U[-9:-3, 150:180] = velocity_of_jet
+    U[3:9, 150:160] = velocity_of_jet
+    U[-9:-3, 150:160] = velocity_of_jet
+
+def updated_a2(a_2, U, dt, dx):
+    du_dxy = calc_dU_d_new(U, dx)
+    da_2_dxy = calc_dU_d_new(a_2, dx)
+    new_a_2 = a_2 + dt*(U*da_2_dxy + a_2*du_dxy)
+    new_a_2[new_a_2 > 0.05] = 0.05
+    new_a_2[new_a_2 < 0.00] = 0.00
+    return new_a_2
 
 
 if __name__ == "__main__":
