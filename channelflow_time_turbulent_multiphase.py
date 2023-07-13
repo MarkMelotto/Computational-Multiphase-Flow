@@ -94,15 +94,15 @@ l_x = np.zeros((Ny+1,Nx))
 l_x[:, :] = f_l_x[:, np.newaxis]
 
 VON_KARMAN = 0.41
-region_function = np.ones(Ny + 1) 
-region_function[:int(.1 * Ny) + 1] = np.array([((n - 1) * H * dy)**2 for n in range(1, int(.1 * Ny) + 2)])
-region_function[int(.9 * Ny):] = np.array([((Ny - n) * H * dy)**2 for n in range(int(.9 * Ny), int(Ny) + 1)])
-region_function[int(.1 * Ny):int(.9 * Ny) + 1] = (H * 0.1) ** 2
-region_function = region_function[:, np.newaxis] * VON_KARMAN**2
+region_function_x = np.ones(Ny + 1)
+region_function_x[:int(.1 * Ny) + 1] = np.array([((n - 1) * H * dy)**2 for n in range(1, int(.1 * Ny) + 2)])
+region_function_x[int(.9 * Ny):] = np.array([((Ny - n) * H * dy)**2 for n in range(int(.9 * Ny), int(Ny) + 1)])
+region_function_x[int(.1 * Ny):int(.9 * Ny) + 1] = (H * 0.1) ** 2
+region_function_x = region_function_x[:, np.newaxis] * VON_KARMAN**2
 
 for iter in tqdm(range(N)):
 
-    eddy_viscosity = np.abs(u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) * region_function[1:-1, :] / dy
+    eddy_viscosity = np.abs(u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) * region_function_x[1:-1, :] / dy
     # u velocity
     diff_x = a_1 * ((nu_mol + eddy_viscosity) * (u_prev[1:-1, 2:] + u_prev[1:-1, :-2] + u_prev[2:, 1:-1] + u_prev[:-2, 1:-1] - 4 * u_prev[1:-1,
                                                                                                            1:-1]) / dy ** 2)
@@ -158,7 +158,7 @@ for iter in tqdm(range(N)):
         # U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, u_star, l_x, dx)
         # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        kinetic_stresses = calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, u_star, region_function, dx)
+        kinetic_stresses = calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, u_star, region_function_x, dx)
         kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, 1:-1]) / dx
 
         u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (-kin_stress_x - interfacial_stress_x - gravitational_particles_x)
@@ -173,7 +173,7 @@ for iter in tqdm(range(N)):
         # U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, v_star, l_y, dx)
         # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        kinetic_stresses = calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, v_star, region_function, dx)
+        kinetic_stresses = calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, v_star, region_function_y, dx)
         kin_stress_y = (kinetic_stresses[2:, 1:-1] - kinetic_stresses[1:-1, 1:-1]) / dx
 
         v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (-kin_stress_y - interfacial_stress_y - gravitational_particles_y)
