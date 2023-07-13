@@ -167,7 +167,7 @@ for iter in tqdm(range(N)):
         # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         kinetic_stresses = calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, u_star, region_function_x, dx)
-        kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, 1:-1]) / dx
+        kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, :-2]) / dx
 
         u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (-kin_stress_x - interfacial_stress_x - gravitational_particles_x)
 
@@ -182,7 +182,7 @@ for iter in tqdm(range(N)):
         # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         kinetic_stresses = calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, v_star, region_function_y, dx)
-        kin_stress_y = (kinetic_stresses[2:, 1:-1] - kinetic_stresses[1:-1, 1:-1]) / dx
+        kin_stress_y = (kinetic_stresses[2:, 1:-1] - kinetic_stresses[:-2, 1:-1]) / dx
 
         v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (-kin_stress_y - interfacial_stress_y - gravitational_particles_y)
 
