@@ -101,8 +101,8 @@ def reynolds_stress_x(U, region_function, dx):
     return eddy_viscosity*(U[2:, 1:-1] - U[:-2, 1:-1])
 
 def reynolds_stress_y(V, region_function, dx):
-    eddy_viscosity = np.abs(V[1:-1, 2:] - V[1:-1,-2:]) * region_function[1:-1, :] / dx
-    return eddy_viscosity*(V[2:, 1:-1] - V[:-2, 1:-1])
+    eddy_viscosity = np.abs(V[1:-1, 2:] - V[1:-1,:-2]) * region_function[1:-1, :] / dx
+    return eddy_viscosity*(V[1:-1, 2:] - V[1:-1,:-2])
 
 def calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, U, region_function, dx):
     U_1i_U_1j = reynolds_stress_x(U, region_function, dx)
@@ -110,7 +110,7 @@ def calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, U, region_function, dx):
     return a_2 * rho_p *((T_t / (T_p + T_t)) * U_1i_U_1j)
 
 def calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, V, region_function, dx):
-    U_1i_U_1j = reynolds_stress_x(V, region_function, dx)
+    U_1i_U_1j = reynolds_stress_y(V, region_function, dx)
     # U_1i_U_1j[np.isnan(U_1i_U_1j)] = 0
     return a_2 * rho_p *((T_t / (T_p + T_t)) * U_1i_U_1j)
 

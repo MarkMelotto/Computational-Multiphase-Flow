@@ -28,7 +28,7 @@ Plot_Every = int(N / totalplots)
 
 U_inlet = 1
 jet_velocity = 1.8
-start_jet = int(N * 0.4)
+start_jet = int(N * 1.1)  # if N * (>1) it does not happen
 
 g = 9.81
 rho_1 = 1000
@@ -100,11 +100,17 @@ region_function_x[int(.9 * Ny):] = np.array([((Ny - n) * H * dy)**2 for n in ran
 region_function_x[int(.1 * Ny):int(.9 * Ny) + 1] = (H * 0.1) ** 2
 region_function_x = region_function_x[:, np.newaxis] * VON_KARMAN**2
 
+region_function_y = np.ones(Ny)
+region_function_y[:int(.1 * Ny)] = np.array([((n - 1) * H * dy)**2 for n in range(1, int(.1 * Ny) + 1)])
+region_function_y[int(.9 * Ny):] = np.array([((Ny - n) * H * dy)**2 for n in range(int(.9 * Ny), int(Ny))])
+region_function_y[int(.1 * Ny):int(.9 * Ny)] = (H * 0.1) ** 2
+region_function_y = region_function_y[:, np.newaxis] * VON_KARMAN**2
+
 for iter in tqdm(range(N)):
 
-    eddy_viscosity = np.abs(u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) * region_function_x[1:-1, :] / dy
+    eddy_viscosity_x = np.abs(u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) * region_function_x[1:-1, :] / dy
     # u velocity
-    diff_x = a_1 * ((nu_mol + eddy_viscosity) * (u_prev[1:-1, 2:] + u_prev[1:-1, :-2] + u_prev[2:, 1:-1] + u_prev[:-2, 1:-1] - 4 * u_prev[1:-1,
+    diff_x = a_1 * ((nu_mol + eddy_viscosity_x) * (u_prev[1:-1, 2:] + u_prev[1:-1, :-2] + u_prev[2:, 1:-1] + u_prev[:-2, 1:-1] - 4 * u_prev[1:-1,
                                                                                                            1:-1]) / dy ** 2)
     conv_x = a_1 * ((u_prev[1:-1, 2:] ** 2 - u_prev[1:-1, :-2] ** 2) / (2 * dx) + (
                 v_prev[1:, 1:-2] + v_prev[1:, 2:-1] + v_prev[:-1, 1:-2] + v_prev[:-1, 2:-1]) / 4 * (
@@ -131,7 +137,9 @@ for iter in tqdm(range(N)):
         make_jet(u_star, jet_velocity)
 
     # v velocity
-    diff_v = a_1 * ((nu_mol) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1, 1:-1]) / dx ** 2)
+    eddy_viscosity_y = np.abs(v_prev[1:-1, 2:] - v_prev[1:-1,:-2]) * region_function_y[1:-1, :] / dy
+
+    diff_v = a_1 * ((nu_mol + eddy_viscosity_y) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1, 1:-1]) / dx ** 2)
     conv_v = a_1 * ((v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx))
     p_grad_v = a_1 * ((P_prev[2:-1, 1:-1] - P_prev[1:-2, 1:-1]) / dx)
 
