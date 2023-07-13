@@ -214,11 +214,17 @@ for iter in tqdm(range(N)):
     v_next[0, :] = 0.0
     v_next[-1, :] = 0.0
 
-    a_2_x[0, :] = 0
-    a_2_x[-1, :] = 0
+    a_2_x[1:-1, 0] = initial_concentration
+    Inflow_flux_a2x = np.sum(a_2_x[1:-1, 0])
+    Outflow_flux_a2x = np.sum(a_2_x[1:-1, -2])
+    a_2_x[1:-1, -1] = a_2_x[1:-1, -2] * Inflow_flux_a2x / Outflow_flux_a2x
+    a_2_x[0, :] = - a_2_x[1, :]
+    a_2_x[-1, :] = - a_2_x[-2, :]
 
-    a_2_y[0, :] = 0
-    a_2_y[-1, :] = 0
+    a_2_y[1:-1, 0] = - a_2_y[1:-1, 1]
+    a_2_y[1:-1, -1] = a_2_y[1:-1, -2]
+    a_2_y[0, :] = 0.0
+    a_2_y[-1, :] = 0.0
 
     '''update the concentration'''
     if iter > start_multi_phase:
