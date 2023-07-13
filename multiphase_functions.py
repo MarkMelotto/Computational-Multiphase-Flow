@@ -116,6 +116,7 @@ def make_jet(U, velocity_of_jet):
     U[-9:-3, 150:160] = velocity_of_jet
 
 def updated_a2(a_2, U, dt, dx):
+    a_2[15, 200] = 0.01  # something that was suggested to us
     du_dxy = calc_dU_d_new(U, dx)
     da_2_dxy = calc_dU_d_new(a_2, dx)
     new_a_2 = a_2 + dt*(U*da_2_dxy + a_2*du_dxy)
