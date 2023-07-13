@@ -41,10 +41,10 @@ angle = 0  # in streamwise direction
 
 # Gravity
 gravitational_particles_x = gravitational_force_particles(a_2, rho_1, rho_p, angle)
-gravitational_fluid_x = gravitational_force_fluid(a_1, rho_1, rho_p, angle)
+gravitational_fluid_x = gravitational_force_fluid(a_2, rho_1, rho_p, angle)
 
 gravitational_particles_y = gravitational_force_particles(a_2, rho_1, rho_p, angle+np.pi/2)
-gravitational_fluid_y = gravitational_force_fluid(a_1, rho_1, rho_p, angle+np.pi/2)
+gravitational_fluid_y = gravitational_force_fluid(a_2, rho_1, rho_p, angle+np.pi/2)
 
 # Initial Conditions
 u_prev = np.ones((Ny + 1, Nx)) * U_inlet

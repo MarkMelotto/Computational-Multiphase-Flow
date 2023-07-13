@@ -87,10 +87,10 @@ l_x[:, :] = f_l_x[:, np.newaxis]
 
 # Gravity
 gravitational_particles_x = gravitational_force_particles(a_2_x, rho_1, rho_p, angle)
-gravitational_fluid_x = gravitational_force_fluid(a_1, rho_1, rho_p, angle)
+gravitational_fluid_x = gravitational_force_fluid(a_2_x, rho_1, rho_p, angle)
 
 gravitational_particles_y = gravitational_force_particles(a_2_y, rho_1, rho_p, angle+np.pi/2)
-gravitational_fluid_y = gravitational_force_fluid(a_1, rho_1, rho_p, angle+np.pi/2)
+gravitational_fluid_y = gravitational_force_fluid(a_2_x, rho_1, rho_p, angle+np.pi/2)
 
 
 for iter in tqdm(range(N)):
