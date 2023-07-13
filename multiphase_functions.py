@@ -101,6 +101,15 @@ def get_F_i_fast(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
     interfacial_stress = 18*nu_f * rho_2 * a_2[1:-1, 1:-1] * U_2i_min_U_1i
 
     return interfacial_stress
+def get_F_i_fast_concentration(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
+    U_2i_min_U_1i = U2mean - U1mean
+    # print(f'U2 min U1 = {U_2i_min_U_1i}')
+    # interfacial_stress = 18*nu_f * rho_2 * a_2 * U_2i_min_U_1i / D_p**2
+    # print(f"a2 {a_2.shape}")
+    # print(f"U2-U1 {U_2i_min_U_1i.shape}")
+    interfacial_stress = 18*nu_f * rho_2 * a_2[1:-1, 1:-1] * U_2i_min_U_1i
+
+    return interfacial_stress
 
 def gravitational_force_particles(a_2, rho_1, rho_2, angle):
     g = 9.81  # m/s^2

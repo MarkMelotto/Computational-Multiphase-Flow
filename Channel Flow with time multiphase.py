@@ -8,16 +8,16 @@ import os
 Aspect = 10  # Aspect ratio between y and x direction
 Ny = 30  # points in y direction
 Nx = (Ny - 1) * Aspect + 1  # points in x direction
-nu_mol = 1e-6  # kinematic viscosity
+nu_mol = 1e-3  # kinematic viscosity
 mu_mol = nu_mol * 1e3
 dt = 1e-4  # time step size
-N = int(9e5)  # number times steps
+N = int(9e4)  # number times steps
 start_multi_phase = int(N * 0.3)  # start timestep of multiphase part
 Npp = 10  # Pressure Poisson iterations
 totalplots = 200
 Plot_Every = int(N / totalplots)
-dx = 1.0 / (Ny - 1)
-H = 1.0  # channel height
+dx = 0.1 / (Ny - 1)
+H = 0.1  # channel height
 L = H * Aspect  # channel length
 U_inlet = 1
 rho_1 = 1000
@@ -98,7 +98,7 @@ for iter in tqdm(range(N)):
 
         U1mean_x = u_prev[1:-1, 1:-1]
         U2mean_x = u_prev_2[1:-1, 1:-1]
-        interfacial_stress_x = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_x, U1mean_x)
+        interfacial_stress_x = get_F_i_fast(nu_mol, D_p, rho_p, a_2, U2mean_x, U1mean_x)
         u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x + interfacial_stress_x - gravitational_fluid_x)
     else:
         u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - gravitational_fluid_x)
@@ -121,7 +121,7 @@ for iter in tqdm(range(N)):
 
         U1mean_y = v_prev[1:-1, 1:-1]
         U2mean_y = v_prev_2[1:-1, 1:-1]
-        interfacial_stress_y = get_F_i(nu_mol, D_p, rho_p, a_2, U2mean_y, U1mean_y)
+        interfacial_stress_y = get_F_i_fast(nu_mol, D_p, rho_p, a_2, U2mean_y, U1mean_y)
         v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v + interfacial_stress_y - gravitational_fluid_y)
     else:
         v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v - gravitational_fluid_y)

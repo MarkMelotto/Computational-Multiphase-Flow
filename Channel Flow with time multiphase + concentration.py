@@ -107,7 +107,7 @@ for iter in tqdm(range(N)):
 
         U1mean_x = u_prev[1:-1, 1:-1]
         U2mean_x = u_prev_2[1:-1, 1:-1]
-        interfacial_stress_x = get_F_i_fast(nu_mol, D_p, rho_p, a_2_x, U2mean_x, U1mean_x)
+        interfacial_stress_x = get_F_i_fast_concentration(nu_mol, D_p, rho_p, a_2_x, U2mean_x, U1mean_x)
         u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x + interfacial_stress_x - gravitational_fluid_x)
     else:
         u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - gravitational_fluid_x)
@@ -130,7 +130,7 @@ for iter in tqdm(range(N)):
 
         U1mean_y = v_prev[1:-1, 1:-1]
         U2mean_y = v_prev_2[1:-1, 1:-1]
-        interfacial_stress_y = get_F_i_fast(nu_mol, D_p, rho_p, a_2_y, U2mean_y, U1mean_y)
+        interfacial_stress_y = get_F_i_fast_concentration(nu_mol, D_p, rho_p, a_2_y, U2mean_y, U1mean_y)
         v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v + interfacial_stress_y - gravitational_fluid_y)
     else:
         v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v - gravitational_fluid_y)
