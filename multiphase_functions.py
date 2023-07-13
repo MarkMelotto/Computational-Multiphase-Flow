@@ -57,21 +57,6 @@ def calc_dU_d_new(U, dx):
     # u_prime = np.sqrt(np.mean(du_dx)**2+np.mean(dv_dy)**2)
     return u_prime
 
-# def calc_dV_d_new(U, dx):
-#     # du_dy = np.zeros((U.shape[0],V.shape[1]))
-#     # du_dx = np.zeros((U.shape[0],V.shape[1]))
-#     # dv_dy = np.zeros((U.shape[0],V.shape[1]))
-#     # dv_dx = np.zeros((U.shape[0],V.shape[1]))
-#     dv_dy = (U[2:-1, 1:-1] - U[1:-2, 1:-1]) / dx
-#     print(f"dv_dy shape = {dv_dy.shape}")
-#     dv_dx = (U[1:-1, 2:-1] - U[1:-1, 1:-2]) / dx
-#
-#     # dv_dy = (V[2:-1, 1:-1] - V[1:-2, 1:-1]) / dx
-#     # dv_dx = (V[1:-1, 2:-1] - V[1:-1, 1:-2]) / dx
-#
-#     u_prime = np.sqrt(dv_dx*dv_dx + dv_dy*dv_dy + 2*dv_dx*dv_dy)/4
-#     # u_prime = np.sqrt(np.mean(du_dx)**2+np.mean(dv_dy)**2)
-#     return u_prime
 
 def calc_U_2i_U_2j(T_t, T_p, U, V, l, dx):
     U_1i_U_1j = calc_U_prime(U, V, l, dx)**2
@@ -110,6 +95,25 @@ def get_F_i_fast_concentration(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
     interfacial_stress = 18*nu_f * rho_2 * a_2[1:-1, 1:-1] * U_2i_min_U_1i
 
     return interfacial_stress
+
+def reynolds_stress_x(U, region_function, dx):
+    eddy_viscosity = np.abs(U[2:, 1:-1] - U[:-2, 1:-1]) * region_function[1:-1, :] / dx
+    return eddy_viscosity*(U[2:, 1:-1] - U[:-2, 1:-1])
+
+def reynolds_stress_y(V, region_function, dx):
+    eddy_viscosity = np.abs(V[1:-1, 2:] - V[1:-1,-2:]) * region_function[1:-1, :] / dx
+    return eddy_viscosity*(V[2:, 1:-1] - V[:-2, 1:-1])
+
+def calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, U, region_function, dx):
+    U_1i_U_1j = reynolds_stress_x(U, region_function, dx)
+    # U_1i_U_1j[np.isnan(U_1i_U_1j)] = 0
+    return a_2 * rho_p *((T_t / (T_p + T_t)) * U_1i_U_1j)
+
+def calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, V, region_function, dx):
+    U_1i_U_1j = reynolds_stress_x(V, region_function, dx)
+    # U_1i_U_1j[np.isnan(U_1i_U_1j)] = 0
+    return a_2 * rho_p *((T_t / (T_p + T_t)) * U_1i_U_1j)
+
 
 def gravitational_force_particles(a_2, rho_1, rho_2, angle):
     g = 9.81  # m/s^2
