@@ -28,7 +28,7 @@ Plot_Every = int(N / totalplots)
 
 U_inlet = 1
 jet_velocity = 1.8
-start_jet = int(N * 1.1)  # if N * (>1) it does not happen
+start_jet = int(N * 1.1)  # if N * (>1) it does not happen, I used 0.4
 
 g = 9.81
 rho_1 = 1000
@@ -106,6 +106,10 @@ region_function_y[int(.9 * Ny):] = np.array([((Ny - n) * H * dy)**2 for n in ran
 region_function_y[int(.1 * Ny):int(.9 * Ny)] = (H * 0.1) ** 2
 region_function_y = region_function_y[:, np.newaxis] * VON_KARMAN**2
 
+# arrays to store reynoldsstress
+rey_x = np.zeros_like(u_prev)
+rey_y = np.zeros_like(v_prev)
+
 for iter in tqdm(range(N)):
 
     eddy_viscosity_x = np.abs(u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) * region_function_x[1:-1, :] / dy
@@ -166,7 +170,7 @@ for iter in tqdm(range(N)):
         # U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, u_star, l_x, dx)
         # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        kinetic_stresses = calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, u_star, region_function_x, dx)
+        kinetic_stresses = calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, u_star, region_function_x, dx, rey_x)
         kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, :-2]) / dx
 
         u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (-kin_stress_x - interfacial_stress_x - gravitational_particles_x)
@@ -181,7 +185,7 @@ for iter in tqdm(range(N)):
         # U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, v_star, l_y, dx)
         # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        kinetic_stresses = calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, v_star, region_function_y, dx)
+        kinetic_stresses = calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, v_star, region_function_y, dx, rey_y)
         kin_stress_y = (kinetic_stresses[2:, 1:-1] - kinetic_stresses[:-2, 1:-1]) / dx
 
         v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (-kin_stress_y - interfacial_stress_y - gravitational_particles_y)

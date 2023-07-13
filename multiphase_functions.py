@@ -96,21 +96,24 @@ def get_F_i_fast_concentration(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
 
     return interfacial_stress
 
-def reynolds_stress_x(U, region_function, dx):
+def reynolds_stress_x(U, region_function, dx, rey_x):
     eddy_viscosity = np.abs(U[2:, 1:-1] - U[:-2, 1:-1]) * region_function[1:-1, :] / dx
-    return eddy_viscosity*(U[2:, 1:-1] - U[:-2, 1:-1])
+    rey_x[1:-1,1:-1] = eddy_viscosity*(U[2:, 1:-1] - U[:-2, 1:-1])
+    return rey_x
 
-def reynolds_stress_y(V, region_function, dx):
+def reynolds_stress_y(V, region_function, dx, rey_y):
     eddy_viscosity = np.abs(V[1:-1, 2:] - V[1:-1,:-2]) * region_function[1:-1, :] / dx
-    return eddy_viscosity*(V[1:-1, 2:] - V[1:-1,:-2])
+    rey_y[1:-1,1:-1] = eddy_viscosity*(V[1:-1, 2:] - V[1:-1,:-2])
+    return rey_y
 
-def calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, U, region_function, dx):
-    U_1i_U_1j = reynolds_stress_x(U, region_function, dx)
-    # U_1i_U_1j[np.isnan(U_1i_U_1j)] = 0
+def calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, U, region_function, dx, rey_x):
+    U_1i_U_1j = reynolds_stress_x(U, region_function, dx, rey_x)
+    # U_1i_U_1j[np.isnan(U_1i_U_1j)] = 0  # operands could not be broadcast together with shapes (31,1161) (29,1159)
+    # I added [1:-1, 1:-1] that should fix the error above, but that will lead to another error
     return a_2 * rho_p *((T_t / (T_p + T_t)) * U_1i_U_1j)
 
-def calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, V, region_function, dx):
-    U_1i_U_1j = reynolds_stress_y(V, region_function, dx)
+def calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, V, region_function, dx, rey_y):
+    U_1i_U_1j = reynolds_stress_y(V, region_function, dx, rey_y)
     # U_1i_U_1j[np.isnan(U_1i_U_1j)] = 0
     return a_2 * rho_p *((T_t / (T_p + T_t)) * U_1i_U_1j)
 
