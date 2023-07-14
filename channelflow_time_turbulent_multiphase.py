@@ -27,9 +27,9 @@ totalplots = 100
 Plot_Every = int(N / totalplots)
 
 U_inlet = 1
-jet_velocity = 1.8
-start_jet = int(N * 1.1)  # if N * (>1) it does not happen, I used 0.4
-pressure_jet = 8e5  # idk willem
+jet_velocity = 1.4
+start_jet = int(N * 0.1)  # if N * (>1) it does not happen, I used 0.4
+pressure_jet = jet_velocity/U_inlet  # idk willem
 
 g = 9.81
 rho_1 = 1000
@@ -214,9 +214,7 @@ for iter in tqdm(range(N)):
         P_correction_next[0, :] = -P_correction_next[1, :]
         P_correction_next[-1, :] = P_correction_next[-2, :]
 
-        # Jet
-        if iter > start_jet:
-            make_jet_pressure(P_correction_next, pressure_jet)
+
 
         # Advance
         P_correction_prev = P_correction_next
@@ -228,12 +226,18 @@ for iter in tqdm(range(N)):
     P_correction_grad_x = (P_correction_next[1:-1, 2:-1] - P_correction_next[1:-1, 1:-2]) / dx
     P_correction_grad_y = (P_correction_next[2:-1, 1:-1] - P_correction_next[1:-2, 1:-1]) / dx
 
+    if iter > start_jet:
+        make_jet_pressure(P_correction_grad_x, pressure_jet)
+
     u_next[1:-1, 1:-1] = u_star[1:-1, 1:-1] - dt * P_correction_grad_x
     v_next[1:-1, 1:-1] = v_star[1:-1, 1:-1] - dt * P_correction_grad_y
 
     # BC again
     u_next[1:-1, 0] = U_inlet
-    Inflow_flux = np.sum(u_next[1:-1, 0])
+    if iter > start_jet:
+        Inflow_flux = np.sum(u_next[1:-1, 0]) + 120 * jet_velocity
+    else:
+        Inflow_flux = np.sum(u_next[1:-1, 0])
     Outflow_flux = np.sum(u_next[1:-1, -2])
     u_next[1:-1, -1] = u_next[1:-1, -2] * Inflow_flux / Outflow_flux
     u_next[0, :] = - u_next[1, :]
@@ -270,11 +274,13 @@ for iter in tqdm(range(N)):
             plt.title(f"SW Continuous Phase, time: {iter * dt:.2f} s, Multiphase: off")
         plt.xlabel("Length (m)")
         plt.ylabel("Width (m)")
+        # plt.show()
         plt.savefig(f'save_for_gif/u_img_{iter}_with_turbulence.png',
                     transparent=False,
                     facecolor='white'
                     )
         plt.close
+        plt.clf()
 
         plt.figure(dpi=DPI_for_figures)
         plt.contourf(coord_x, coord_y, v_center, levels=10)

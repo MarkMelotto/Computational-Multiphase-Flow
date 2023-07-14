@@ -130,12 +130,12 @@ def gravitational_force_fluid(a_2, rho_1, rho_2, angle):
     # return a_1 * g * np.cos(angle)
 
 def make_jet(U, velocity_of_jet):
-    U[3:9, 150:160] = velocity_of_jet
-    U[-9:-3, 150:160] = velocity_of_jet
+    U[3:10, 150:161] = velocity_of_jet
+    U[-10:-3, 150:161] = velocity_of_jet
 
 def make_jet_pressure(P, pressure_of_jet):
-    P[3:9, 150:160] = pressure_of_jet
-    P[-9:-3, 150:160] = pressure_of_jet
+    P[3:10, 150:161] /= pressure_of_jet
+    P[-10:-3, 150:161] /= pressure_of_jet
 
 def updated_a2(a_2, U, dt, dx):
     a_2[15, 200] = 0.01  # something that was suggested to us
