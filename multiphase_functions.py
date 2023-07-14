@@ -43,11 +43,11 @@ def calc_dU_d_new(U, dx):
     # dv_dy = np.zeros((U.shape[0],V.shape[1]))
     # dv_dx = np.zeros((U.shape[0],V.shape[1]))
     # print(f"u shape = {U.shape}")
-    du_dy[2:-1, 1:-1] = (U[2:-1, 1:-1] - U[1:-2, 1:-1]) / dx
-    du_dy[np.isnan(du_dy)] = 0
+    du_dy[1:-1, 1:-1] = (U[2:, 1:-1] - U[:-2, 1:-1]) / dx
+    # du_dy[np.isnan(du_dy)] = 0
     # print(f"du_dy shape = {du_dy.shape}")
-    du_dx[1:-1, 2:-1] = (U[1:-1, 2:-1] - U[1:-1, 1:-2]) / dx
-    du_dx[np.isnan(du_dx)] = 0
+    du_dx[1:-1, 1:-1] = (U[1:-1, 2:] - U[1:-1, :-2]) / dx
+    # du_dx[np.isnan(du_dx)] = 0
     # print(f"du_dx shape = {du_dx.shape}")
     # dv_dy = (V[2:-1, 1:-1] - V[1:-2, 1:-1]) / dx
     # dv_dx = (V[1:-1, 2:-1] - V[1:-1, 1:-2]) / dx
@@ -96,46 +96,52 @@ def get_F_i_fast_concentration(nu_f, D_p, rho_2, a_2, U2mean, U1mean):
 
     return interfacial_stress
 
-def reynolds_stress_x(U, region_function, dx, rey_x):
-    eddy_viscosity = np.abs(U[2:, 1:-1] - U[:-2, 1:-1]) * region_function[1:-1, :] / dx
-    rey_x[1:-1,1:-1] = eddy_viscosity*(U[2:, 1:-1] - U[:-2, 1:-1])
+def reynolds_stress_x(U, eddy_viscosity_x, rey_x):
+    rey_x[1:-1,1:-1] = eddy_viscosity_x*(U[2:, 1:-1] - U[:-2, 1:-1])
     return rey_x
 
-def reynolds_stress_y(V, region_function, dx, rey_y):
-    eddy_viscosity = np.abs(V[1:-1, 2:] - V[1:-1,:-2]) * region_function[1:-1, :] / dx
-    rey_y[1:-1,1:-1] = eddy_viscosity*(V[1:-1, 2:] - V[1:-1,:-2])
+def reynolds_stress_y(V, eddy_viscosity_y, rey_y):
+    rey_y[1:-1,1:-1] = eddy_viscosity_y*(V[2:, 1:-1] - V[:-2, 1:-1])
     return rey_y
 
-def calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, U, region_function, dx, rey_x):
-    U_1i_U_1j = reynolds_stress_x(U, region_function, dx, rey_x)
+def calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, U, eddy_viscosity_x, rey_x):
+    U_1i_U_1j = reynolds_stress_x(U, eddy_viscosity_x, rey_x)
     # U_1i_U_1j[np.isnan(U_1i_U_1j)] = 0  # operands could not be broadcast together with shapes (31,1161) (29,1159)
     # I added [1:-1, 1:-1] that should fix the error above, but that will lead to another error
-    return a_2 * rho_p *((T_t / (T_p + T_t)) * U_1i_U_1j)
+    kin_stress = a_2 * rho_p * ((T_t / (T_p + T_t)) * U_1i_U_1j)
+    kin_stress[np.isnan(kin_stress)] = 0
+    return kin_stress
 
-def calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, V, region_function, dx, rey_y):
-    U_1i_U_1j = reynolds_stress_y(V, region_function, dx, rey_y)
+def calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, V, eddy_viscosity_y, rey_y):
+    U_1i_U_1j = reynolds_stress_y(V, eddy_viscosity_y, rey_y)
     # U_1i_U_1j[np.isnan(U_1i_U_1j)] = 0
-    return a_2 * rho_p *((T_t / (T_p + T_t)) * U_1i_U_1j)
+    kin_stress = a_2 * rho_p *((T_t / (T_p + T_t)) * U_1i_U_1j)
+    kin_stress[np.isnan(kin_stress)] = 0
+    return kin_stress
 
 
 def gravitational_force_particles(a_2, rho_1, rho_2, angle):
     g = 9.81  # m/s^2
-    return a_2*((rho_2 - rho_1)/rho_2) * g * np.cos(angle)
+    return a_2*((rho_2 - rho_1)/rho_1) * g * np.cos(angle)
     # return a_2 * rho_2/(rho_1+rho_2) * g * np.cos(angle)
 def gravitational_force_fluid(a_2, rho_1, rho_2, angle):
     g = 9.81  # m/s^2
-    return -a_2*((rho_2 - rho_1)/rho_2) * g * np.cos(angle)
+    return -a_2*((rho_2 - rho_1)/rho_1) * g * np.cos(angle)
     # return a_1 * g * np.cos(angle)
 
 def make_jet(U, velocity_of_jet):
     U[3:9, 150:160] = velocity_of_jet
     U[-9:-3, 150:160] = velocity_of_jet
 
+def make_jet_pressure(P, pressure_of_jet):
+    P[3:9, 150:160] = pressure_of_jet
+    P[-9:-3, 150:160] = pressure_of_jet
+
 def updated_a2(a_2, U, dt, dx):
     a_2[15, 200] = 0.01  # something that was suggested to us
     du_dxy = calc_dU_d_new(U, dx)
     da_2_dxy = calc_dU_d_new(a_2, dx)
-    new_a_2 = a_2 + dt*(U*da_2_dxy + a_2*du_dxy)
+    new_a_2 = a_2 - dt*(U*da_2_dxy + a_2*du_dxy)
     new_a_2[new_a_2 > 0.05] = 0.05
     new_a_2[new_a_2 < 0.00] = 0.00
     return new_a_2

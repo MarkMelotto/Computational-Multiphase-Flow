@@ -90,7 +90,7 @@ gravitational_particles_x = gravitational_force_particles(a_2_x, rho_1, rho_p, a
 gravitational_fluid_x = gravitational_force_fluid(a_2_x, rho_1, rho_p, angle)
 
 gravitational_particles_y = gravitational_force_particles(a_2_y, rho_1, rho_p, angle+np.pi/2)
-gravitational_fluid_y = gravitational_force_fluid(a_2_x, rho_1, rho_p, angle+np.pi/2)
+gravitational_fluid_y = gravitational_force_fluid(a_2_y, rho_1, rho_p, angle+np.pi/2)
 
 
 for iter in tqdm(range(N)):
@@ -108,9 +108,9 @@ for iter in tqdm(range(N)):
         U1mean_x = u_prev[1:-1, 1:-1]
         U2mean_x = u_prev_2[1:-1, 1:-1]
         interfacial_stress_x = get_F_i_fast_concentration(nu_mol, D_p, rho_p, a_2_x, U2mean_x, U1mean_x)
-        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x + interfacial_stress_x - gravitational_fluid_x)
+        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x + interfacial_stress_x - gravitational_fluid_x[1:-1, 1:-1])
     else:
-        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - gravitational_fluid_x)
+        u_star[1:-1, 1:-1] = u_prev[1:-1, 1:-1] + dt * (-p_grad_x + diff_x - conv_x - gravitational_fluid_x[1:-1, 1:-1])
 
 
     # BC
@@ -131,9 +131,9 @@ for iter in tqdm(range(N)):
         U1mean_y = v_prev[1:-1, 1:-1]
         U2mean_y = v_prev_2[1:-1, 1:-1]
         interfacial_stress_y = get_F_i_fast_concentration(nu_mol, D_p, rho_p, a_2_y, U2mean_y, U1mean_y)
-        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v + interfacial_stress_y - gravitational_fluid_y)
+        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v + interfacial_stress_y - gravitational_fluid_y[1:-1, 1:-1])
     else:
-        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v - gravitational_fluid_y)
+        v_star[1:-1, 1:-1] = v_prev[1:-1, 1:-1] + dt * (-p_grad_v + diff_v - conv_v - gravitational_fluid_y[1:-1, 1:-1])
 
     # BC
     v_star[1:-1, 0] = - v_star[1:-1, 1]
@@ -294,7 +294,7 @@ for iter in range(N):
             image = imageio.v2.imread(f'save_for_gif/img_mult_{iter}.png')
             frames_2.append(image)
 
-imageio.mimsave(f'gifs/multiphase_continuous.gif',
+imageio.mimsave(f'gifs/multiphase_continuous_concentration.gif',
                 frames,
                 duration=0.03
                 )
@@ -309,7 +309,7 @@ np.save(directory + "\\data\\height.npy", height)
 plt.plot(height, u_center[:,-5], label='Continuous phase')
 plt.title("Steamwise Velocity profile at the end")
 if start_multi_phase < N:
-    imageio.mimsave(f'gifs/multiphase_dispersed.gif',
+    imageio.mimsave(f'gifs/multiphase_dispersed_concentration.gif',
                     frames_2,
                     duration=0.03
                     )
@@ -321,7 +321,7 @@ plt.ylabel("Velocity (m/s)")
 plt.xlabel("Width (m)")
 plt.legend()
 plt.grid()
-plt.savefig(f"plots/velocity.png")
+plt.savefig(f"plots/velocity_concentration.png")
 
 print("gif saved")
 

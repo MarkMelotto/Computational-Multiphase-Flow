@@ -29,6 +29,7 @@ Plot_Every = int(N / totalplots)
 U_inlet = 1
 jet_velocity = 1.8
 start_jet = int(N * 1.1)  # if N * (>1) it does not happen, I used 0.4
+pressure_jet = 8e5  # idk willem
 
 g = 9.81
 rho_1 = 1000
@@ -141,7 +142,7 @@ for iter in tqdm(range(N)):
         make_jet(u_star, jet_velocity)
 
     # v velocity
-    eddy_viscosity_y = np.abs(v_prev[1:-1, 2:] - v_prev[1:-1,:-2]) * region_function_y[1:-1, :] / dy
+    eddy_viscosity_y = np.abs(v_prev[2:, 1:-1] - v_prev[:-2, 1:-1]) * region_function_y[1:-1, :] / dy
 
     diff_v = a_1 * ((nu_mol + eddy_viscosity_y) * (v_prev[1:-1, 2:] + v_prev[1:-1, :-2] + v_prev[2:, 1:-1] + v_prev[:-2, 1:-1] - 4 * v_prev[1:-1, 1:-1]) / dx ** 2)
     conv_v = a_1 * ((v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx))
@@ -170,7 +171,7 @@ for iter in tqdm(range(N)):
         # U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, u_star, l_x, dx)
         # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        kinetic_stresses = calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, u_star, region_function_x, dx, rey_x)
+        kinetic_stresses = calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, u_star, eddy_viscosity_x, rey_x)
         kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, :-2]) / dx
 
         u_prev_2[1:-1, 1:-1] = u_prev_2[1:-1, 1:-1] + dt * (-kin_stress_x - interfacial_stress_x - gravitational_particles_x)
@@ -185,7 +186,7 @@ for iter in tqdm(range(N)):
         # U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, v_star, l_y, dx)
         # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
         # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
-        kinetic_stresses = calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, v_star, region_function_y, dx, rey_y)
+        kinetic_stresses = calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, v_star, eddy_viscosity_y, rey_y)
         kin_stress_y = (kinetic_stresses[2:, 1:-1] - kinetic_stresses[:-2, 1:-1]) / dx
 
         v_prev_2[1:-1, 1:-1] = v_prev_2[1:-1, 1:-1] + dt * (-kin_stress_y - interfacial_stress_y - gravitational_particles_y)
@@ -212,6 +213,10 @@ for iter in tqdm(range(N)):
         P_correction_next[1:-1, -1] = P_correction_next[1:-1, -2]
         P_correction_next[0, :] = -P_correction_next[1, :]
         P_correction_next[-1, :] = P_correction_next[-2, :]
+
+        # Jet
+        if iter > start_jet:
+            make_jet_pressure(P_correction_next, pressure_jet)
 
         # Advance
         P_correction_prev = P_correction_next

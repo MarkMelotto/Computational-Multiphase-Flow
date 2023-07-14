@@ -44,27 +44,27 @@ if __name__ == "__main__":
     POI = 5
     # pipe = "larger_pipe"
     pipe = "smaller_pipe_fixed gravity"
-    load_data_different_rho(1602, POI, pipe)
-    load_data_different_rho(2602, POI, pipe)
-    load_data_different_rho(3602, POI, pipe)
-
-    plt.title("Effects of gravity for different dispersed densities")
-    plt.xlabel("Width (m)")
-    plt.legend()
-    plt.ylabel("Velocity (m/s)")
-    plt.grid()
-    plt.show()
-
-    # load_data_different_a2(1, POI, pipe)
-    # load_data_different_a2(3, POI, pipe)
-    # load_data_different_a2(5, POI, pipe)
+    # load_data_different_rho(1602, POI, pipe)
+    # load_data_different_rho(2602, POI, pipe)
+    # load_data_different_rho(3602, POI, pipe)
     #
-    # plt.title("Effects of gravity for different dispersed volume fractions")
+    # plt.title("Effects of gravity for different dispersed densities")
     # plt.xlabel("Width (m)")
     # plt.legend()
     # plt.ylabel("Velocity (m/s)")
     # plt.grid()
     # plt.show()
+
+    load_data_different_a2(1, POI, pipe)
+    load_data_different_a2(3, POI, pipe)
+    load_data_different_a2(5, POI, pipe)
+
+    plt.title("Effects of gravity for different dispersed volume fractions")
+    plt.xlabel("Width (m)")
+    plt.legend()
+    plt.ylabel("Velocity (m/s)")
+    plt.grid()
+    plt.show()
     #
     # adress_normal = "normal"
     # adress_14 = "jet 1.4\\3.3cm"

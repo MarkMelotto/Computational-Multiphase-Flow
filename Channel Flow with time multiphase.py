@@ -33,7 +33,7 @@ D_p = 1e-3  # diameter particles 1mm
 rho_p = 1602  # density sand = 1602 kg/m3
 V_p = (D_p/2)**3 * np.pi * 4/3  # volume particle
 M_p = V_p * rho_p  # mass of the particle
-a_2 = 0.01  # alpha 2 is set to be 0.01 for now
+a_2 = 0.05  # alpha 2 is set to be 0.01 for now
 T_p = M_p/(3*np.pi*mu_mol*D_p)  # Particle relaxation == 8.9e-5
 T_p *= 100  # this fix works if nu =<1e-6 and dt =<1e-4
 a_1 = 1  # safe to assume
