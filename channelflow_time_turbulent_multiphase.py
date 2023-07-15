@@ -27,7 +27,7 @@ totalplots = 100
 Plot_Every = int(N / totalplots)
 
 U_inlet = 1
-jet_velocity = 1.4
+jet_velocity = 1.8
 start_jet = int(N * 0.1)  # if N * (>1) it does not happen, I used 0.4
 pressure_jet = jet_velocity/U_inlet  # idk willem
 
@@ -48,13 +48,13 @@ T_p *= 100  # this fix works if nu =<1e-6 and dt =<1e-4
 a_1 = 1  # safe to assume
 angle = 0  # in streamwise direction
 
-# Gravity
+# Gravity calculation
 gravitational_particles_x = gravitational_force_particles(a_2, rho_1, rho_p, angle)
 gravitational_fluid_x = gravitational_force_fluid(a_2, rho_1, rho_p, angle)
 
 gravitational_particles_y = gravitational_force_particles(a_2, rho_1, rho_p, angle+np.pi/2)
 gravitational_fluid_y = gravitational_force_fluid(a_2, rho_1, rho_p, angle+np.pi/2)
-# print(T_p)
+
 
 # Initial Conditions
 u_prev = np.ones((Ny + 1, Nx)) * U_inlet
@@ -77,7 +77,7 @@ u_next = np.zeros_like(u_prev)
 v_star = np.zeros_like(v_prev)
 v_next = np.zeros_like(v_prev)
 
-
+# computing l
 y = np.linspace(0, H, Ny)
 f_pos = 0.4 * y
 f_neg = 0.4 * H - 0.4 * y
@@ -107,7 +107,7 @@ region_function_y[int(.9 * Ny):] = np.array([((Ny - n) * H * dy)**2 for n in ran
 region_function_y[int(.1 * Ny):int(.9 * Ny)] = (H * 0.1) ** 2
 region_function_y = region_function_y[:, np.newaxis] * VON_KARMAN**2
 
-# arrays to store reynoldsstress
+# arrays to store reynolds stress
 rey_x = np.zeros_like(u_prev)
 rey_y = np.zeros_like(v_prev)
 
@@ -122,7 +122,7 @@ for iter in tqdm(range(N)):
                          u_prev[2:, 1:-1] - u_prev[:-2, 1:-1]) / (2 * dx))
     p_grad_x = a_1 * ((P_prev[1:-1, 2:-1] - P_prev[1:-1, 1:-2]) / dx)
 
-    '''multiphase part'''
+    '''multiphase part of the continuous phase'''
     if iter > start_multi_phase:
         U1mean_x = u_prev[1:-1, 1:-1]
         U2mean_x = u_prev_2[1:-1, 1:-1]
@@ -138,6 +138,7 @@ for iter in tqdm(range(N)):
     u_star[0, :] = - u_star[1, :]
     u_star[-1, :] = - u_star[-2, :]
 
+    # set the jet
     if iter > start_jet:
         make_jet(u_star, jet_velocity)
 
@@ -148,9 +149,8 @@ for iter in tqdm(range(N)):
     conv_v = a_1 * ((v_prev[2:, 1:-1] ** 2 - v_prev[:-2, 1:-1] ** 2) / (2 * dx) + (u_prev[2:-1, 1:] + u_prev[2:-1, :-1] + u_prev[1:-2, 1:] + u_prev[1:-2, :-1]) / 4 * (v_prev[1:-1, 2:] - v_prev[1:-1, :-2]) / (2 * dx))
     p_grad_v = a_1 * ((P_prev[2:-1, 1:-1] - P_prev[1:-2, 1:-1]) / dx)
 
-    '''multiphase part'''
+    '''multiphase part of the continuous phase'''
     if iter > start_multi_phase:
-
 
         U1mean_y = v_prev[1:-1, 1:-1]
         U2mean_y = v_prev_2[1:-1, 1:-1]
@@ -165,12 +165,9 @@ for iter in tqdm(range(N)):
     v_star[0, :] = 0.0
     v_star[-1, :] = 0.0
 
-    '''multiphase part'''
+    '''multiphase part of the dispersed phase'''
     if iter > start_multi_phase:
         T_t = calc_T_t_new(u_star, l_x, dx)
-        # U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, u_star, l_x, dx)
-        # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
-        # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         kinetic_stresses = calculate_kinetic_stress_x(a_2, rho_p, T_t, T_p, u_star, eddy_viscosity_x, rey_x)
         kin_stress_x = (kinetic_stresses[1:-1, 2:] - kinetic_stresses[1:-1, :-2]) / dx
 
@@ -183,9 +180,6 @@ for iter in tqdm(range(N)):
         u_prev_2[1:-1, -1] = u_prev_2[1:-1, -2] * Inflow_flux / Outflow_flux
 
         T_t = calc_T_t_new(v_star, l_y, dx)
-        # U_2i_U_2j = calc_U_2i_U_2j_new(T_t, T_p, v_star, l_y, dx)
-        # kinetic_stresses = a_2 * rho_p * U_2i_U_2j
-        # kinetic_stresses[np.isnan(kinetic_stresses)] = 0
         kinetic_stresses = calculate_kinetic_stress_y(a_2, rho_p, T_t, T_p, v_star, eddy_viscosity_y, rey_y)
         kin_stress_y = (kinetic_stresses[2:, 1:-1] - kinetic_stresses[:-2, 1:-1]) / dx
 
@@ -226,9 +220,11 @@ for iter in tqdm(range(N)):
     P_correction_grad_x = (P_correction_next[1:-1, 2:-1] - P_correction_next[1:-1, 1:-2]) / dx
     P_correction_grad_y = (P_correction_next[2:-1, 1:-1] - P_correction_next[1:-2, 1:-1]) / dx
 
+    # change the pressure at the jet outlet
     if iter > start_jet:
         make_jet_pressure(P_correction_grad_x, pressure_jet)
 
+    # corrector step
     u_next[1:-1, 1:-1] = u_star[1:-1, 1:-1] - dt * P_correction_grad_x
     v_next[1:-1, 1:-1] = v_star[1:-1, 1:-1] - dt * P_correction_grad_y
 
@@ -248,6 +244,7 @@ for iter in tqdm(range(N)):
     v_next[0, :] = 0.0
     v_next[-1, :] = 0.0
 
+    # set the jet again
     if iter > start_jet:
         make_jet(u_next, jet_velocity)
 
@@ -369,6 +366,8 @@ height = np.linspace(0.0, H, Ny)
 plt.close()
 plt.figure()
 u_center = (u_next[1:, :] + u_next[:-1, :]) / 2
+
+# also save the data of the velocity fields in the streamwise direction
 directory = os.getcwd()
 np.save(directory + "\\data\\u_center.npy", u_center)
 np.save(directory + "\\data\\height.npy", height)

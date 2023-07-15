@@ -29,12 +29,12 @@ def load_data_different_a2(a2, POI, pipe):
 
 def load_data_dredging(adress, POI, label):
     directory = os.getcwd()
-    x_axis = np.load(directory + "\\tests\\multiphase_tests\\dredging\\" + adress + "\\height.npy")
-    data_fluid = np.load(directory + "\\tests\\multiphase_tests\\dredging\\" + adress + "\\u_center.npy")
-    data_particles = np.load(directory + "\\tests\\multiphase_tests\\dredging\\" + adress + "\\u_center_2.npy")
+    x_axis = np.load(directory + "\\tests\\multiphase_tests\\smaller_pipe_fixed_g_kinstress\\" + adress + "\\height.npy")
+    data_fluid = np.load(directory + "\\tests\\multiphase_tests\\smaller_pipe_fixed_g_kinstress\\" + adress + "\\u_center.npy")
+    data_particles = np.load(directory + "\\tests\\multiphase_tests\\smaller_pipe_fixed_g_kinstress\\" + adress + "\\u_center_2.npy")
 
-    plt.plot(x_axis, data_fluid[:, -POI], ls='--', label=f"Continuous Phase, {label}")
     plt.plot(x_axis, data_particles[:, -POI], label=f"Dispersed Phase, {label}")
+    plt.plot(x_axis, data_fluid[:, -POI], ls='--', label=f"Continuous Phase, {label}")
     print(f"Mean velocity of the continuous phase = {np.mean(data_fluid[:, -POI]):.4f}, {label}")
     print(f"Mean velocity of the dispersed phase = {np.mean(data_particles[:, -POI]):.4f}, {label}")
 
@@ -55,32 +55,35 @@ if __name__ == "__main__":
     # plt.grid()
     # plt.show()
 
-    load_data_different_a2(1, POI, pipe)
-    load_data_different_a2(3, POI, pipe)
-    load_data_different_a2(5, POI, pipe)
-
-    plt.title("Effects of gravity for different dispersed volume fractions")
-    plt.xlabel("Width (m)")
-    plt.legend()
-    plt.ylabel("Velocity (m/s)")
-    plt.grid()
-    plt.show()
+    # load_data_different_a2(1, POI, pipe)
+    # load_data_different_a2(3, POI, pipe)
+    # load_data_different_a2(5, POI, pipe)
     #
-    # adress_normal = "normal"
-    # adress_14 = "jet 1.4\\3.3cm"
-    # adress_18 = "jet 1.8\\3.3cm"
-    #
-    # label_normal = "no jets"
-    # label_14 = "jet inlet = 1.4 m/s"
-    # label_18 = "jet inlet = 1.8 m/s"
-    #
-    # load_data_dredging(adress_normal, POI, label_normal)
-    # load_data_dredging(adress_14, POI, label_14)
-    # load_data_dredging(adress_18, POI, label_18)
-    #
-    # plt.title("Effects of different jet velocities")
+    # plt.title("Effects of gravity for different dispersed volume fractions")
     # plt.xlabel("Width (m)")
     # plt.legend()
     # plt.ylabel("Velocity (m/s)")
     # plt.grid()
     # plt.show()
+    #
+    adress_normal = "normal"
+    adress_11 = "jet 1.1"
+    adress_14 = "jet 1.4"
+    # adress_18 = "jet 1.8"
+    #
+    label_normal = "no jets"
+    label_11 = "jet outlet = 1.1 m/s"
+    label_14 = "jet outlet = 1.4 m/s"
+    # label_18 = "jet outlet = 1.8 m/s"
+    #
+    # load_data_dredging(adress_normal, POI, label_normal)
+    load_data_dredging(adress_11, POI, label_11)
+    load_data_dredging(adress_14, POI, label_14)
+    # load_data_dredging(adress_18, POI, label_18)
+    #
+    plt.title("Effects of different jet velocities")
+    plt.xlabel("Width (m)")
+    plt.legend()
+    plt.ylabel("Velocity (m/s)")
+    plt.grid()
+    plt.show()
