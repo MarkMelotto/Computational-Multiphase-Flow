@@ -69,17 +69,17 @@ if __name__ == "__main__":
     adress_normal = "normal"
     adress_11 = "jet 1.1"
     adress_14 = "jet 1.4"
-    # adress_18 = "jet 1.8"
+    adress_18 = "jet 1.8"
     #
     label_normal = "no jets"
     label_11 = "jet outlet = 1.1 m/s"
     label_14 = "jet outlet = 1.4 m/s"
-    # label_18 = "jet outlet = 1.8 m/s"
+    label_18 = "jet outlet = 1.8 m/s"
     #
     # load_data_dredging(adress_normal, POI, label_normal)
     load_data_dredging(adress_11, POI, label_11)
     load_data_dredging(adress_14, POI, label_14)
-    # load_data_dredging(adress_18, POI, label_18)
+    load_data_dredging(adress_18, POI, label_18)
     #
     plt.title("Effects of different jet velocities")
     plt.xlabel("Width (m)")
